@@ -3,7 +3,12 @@
 #include <queue>
 #include <cstdlib>
 #include <ctime>
-#include <unistd.h> // untuk sleep()
+#ifdef _WIN32
+    #include <windows.h>
+#else
+    #include <unistd.h>
+#endif
+// #include <unistd.h>
 
 using namespace std;
 
@@ -142,14 +147,17 @@ int main() {
 
     while (true) {
         printMap();
-        char move;
-        cin >> move; // Mengambil input arah
+        char move; cin >> move; // Mengambil input arah
 
         moveCourier(move); // Menggerakkan kurir
         pickUpPackage(); // Ambil paket jika ada
         deliverPackage(); // Antar paket jika sudah sampai tujuan
 
-        usleep(200000); // Kecepatan game (200ms)
+        #ifdef _WIN32
+            Sleep(1000);
+        #else
+            usleep(200000); // Kecepatan game (200ms)
+        #endif
     }
 
     return 0;

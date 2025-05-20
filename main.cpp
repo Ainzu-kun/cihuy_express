@@ -80,7 +80,13 @@ void generateMap() {
 
 // Fungsi untuk menampilkan peta
 void printMap() {
-    system("clear"); // Menghapus layar
+
+    #ifdef _WIN32
+        system("cls");
+    #else
+        system("clear"); // Menghapus layar
+    #endif
+
     map[courierY][courierX] = 'C'; // Posisi kurir, diganti dengan simbol ASCII
 
     for (int i = 0; i < HEIGHT; i++) {
@@ -107,7 +113,13 @@ void moveCourier(char direction) {
 
     // Cek apakah menabrak tembok
     if (map[nextY][nextX] == '#') {
-        system("clear");
+
+        #ifdef _WIN32
+            system("cls");
+        #else
+            system("clear");
+        #endif
+
         cout << "💥 GAME OVER! Kamu menabrak tembok! 💥" << endl;
         cout << "Skor akhir: " << score << endl;
         exit(0); // Keluar dari program
@@ -154,7 +166,7 @@ int main() {
         deliverPackage(); // Antar paket jika sudah sampai tujuan
 
         #ifdef _WIN32
-            Sleep(1000);
+            Sleep(200);
         #else
             usleep(200000); // Kecepatan game (200ms)
         #endif

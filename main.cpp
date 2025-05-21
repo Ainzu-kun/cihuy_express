@@ -31,8 +31,8 @@ set<pair<int, int>> house_loc; // house location
 // Queue untuk tujuan antar paket
 queue< pair<int, int> > deliveryQueue; // Perbaiki spasi di sini
 
-// Skor
-int score = 0;
+int score = 0; // Skor
+int move_limit = 0; // move limit courier
 
 void load_users() {
     ifstream infile("users.txt");
@@ -82,25 +82,25 @@ void login_or_regis() {
 void show_animation() {
     const string frames[] = {
         R"( 
-  🎉 Horeee!!! Paket berhasil diantar! 🎉
+  Horeee!!! Paket berhasil diantar!
      \(^_^)/ 
         |
        / \
         )",
 
         R"(
-  🎊 Paket diterima dengan bahagia! 🎊
+  Paket diterima dengan bahagia!
      (^o^)/
       \|
       / \
         )",
 
         R"(
-  ✨ Terima kasih, kurir hebat! Cihuyyyy!! ✨
-     (^-^)b
-        |
-       / \
-        )"
+  Terima kasih, kurir hebat! Cihuyyyy!!
+     (^-^)
+       |
+      / \
+       )"
     };
 
     for (int i = 0; i < 3; ++i) {
@@ -201,6 +201,49 @@ void printMap() {
 
     cout << "Skor: " << score << endl;
     cout << "Paket dibawa: " << carriedPackages.size() << "/3" << endl;
+    cout << "Langkah tersisa: " << move_limit << endl;
+}
+
+int calculate_shortest_path(int startY, int startX, int targetY, int targetX) {
+    queue<pair<int, int>> q;
+    int dist[HEIGHT][WIDTH];
+    bool visited[HEIGHT][WIDTH] = {false};
+
+    for(int i = 0; i < HEIGHT; i++) {
+        for(int j = 0; j < WIDTH; j++) {
+            dist[i][j] = -1;
+        }
+    }
+
+    q.push({startY, startX});
+    dist[startY][startX] = 0;
+    visited[startY][startX] = true;
+
+    int dirY[4] = {-1, 1, 0, 0};
+    int dirX[4] = {0, 0, -1, 1};
+
+    while(!q.empty()) {
+        auto [y, x] = q.front(); q.pop();
+
+        if (y == targetY && x == targetX) {
+            return dist[y][x]; // shortest path found
+        }
+
+        for (int d = 0; d < 4; d++) {
+            int ny = y + dirY[d];
+            int nx = x + dirX[d];
+
+            if (ny >= 0 && ny < HEIGHT && nx >= 0 && nx < WIDTH &&
+                game_map[ny][nx] != '#' && !visited[ny][nx]) {
+
+                visited[ny][nx] = true;
+                dist[ny][nx] = dist[y][x] + 1;
+                q.push({ny, nx});
+            }
+        }
+    }
+
+    return -1; // no path found
 }
 
 // Fungsi untuk kontrol arah
@@ -234,6 +277,12 @@ void moveCourier(char direction) {
     // Update posisi kurir
     courierX = nextX;
     courierY = nextY;
+
+    move_limit--;
+    if (move_limit <= 0) {
+        cout << "Move limit habis! Kamu kelelahan dan gagal mengantar!" << endl;
+        exit(0);
+    }
 }
 
 
@@ -275,33 +324,29 @@ void deliverPackage() {
             }
         }
     }
-    // if (game_map[courierY][courierX] == 'H') {
-    //     if (!carriedPackages.empty()) {
-    //         carriedPackages.pop();
-    //         deliveryQueue.push(make_pair(courierY, courierX));
-    //         score += 10;
-
-    //         game_map[courierY][courierX] = ' '; // delete old house
-
-    //         // add new house at random loc
-    //         while (true) {
-    //             int x = rand() % (WIDTH - 2) + 1;
-    //             int y = rand() % (HEIGHT - 2) + 1;
-
-    //             if (game_map[y][x] == ' ' && !(x == courierX && y == courierY)) {
-    //                 game_map[y][x] = 'H';
-    //                 break;
-    //             }
-    //         }
-    //     }
-    //     // if courier doesn't bring the package, the house remains there, doing nothing.
-    // }
 }
 
 int main() {
     login_or_regis();
     srand(time(0));
     generateMap();
+
+    auto target = *house_loc.begin();
+    int shortest_path = calculate_shortest_path(courierY, courierX, target.first, target.second);
+
+    move_limit = shortest_path * 2;
+    if (move_limit <= 0) move_limit = 30; // fallback jika jalur tidak ditemukan
+
+    cout << "Move limit kamu adalah: " << move_limit << " langkah." << endl;
+
+    #ifdef _WIN32
+        system("pause");
+    #else
+        cout << "Tekan ENTER untuk mulai...";
+        cin.ignore();
+        cin.get();
+    #endif
+
 
     while (true) {
         printMap();

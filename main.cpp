@@ -3,6 +3,9 @@
 #include <queue>
 #include <cstdlib>
 #include <ctime>
+#include <set>
+#include <fstream>
+#include <regex>
 #ifdef _WIN32
     #include <windows.h>
 #else
@@ -15,14 +18,15 @@ using namespace std;
 // Ukuran peta
 const int WIDTH = 30;
 const int HEIGHT = 15;
-char map[HEIGHT][WIDTH];
+char game_map[HEIGHT][WIDTH];
 
 // Posisi awal kurir
 int courierX = WIDTH / 2;
 int courierY = HEIGHT / 2;
 
-// Stack untuk membawa paket
-stack<char> carriedPackages;
+stack<char> carriedPackages; // Stack untuk membawa paket
+set<string> registered_users; // save registered user
+set<pair<int, int>> house_loc; // house location
 
 // Queue untuk tujuan antar paket
 queue< pair<int, int> > deliveryQueue; // Perbaiki spasi di sini
@@ -30,20 +34,110 @@ queue< pair<int, int> > deliveryQueue; // Perbaiki spasi di sini
 // Skor
 int score = 0;
 
+void load_users() {
+    ifstream infile("users.txt");
+
+    string username;
+    while(infile >> username) {
+        registered_users.insert(username);
+    }
+}
+
+void save_user(const string &username) {
+    ofstream outfile("users.txt", ios::app);
+    outfile << username << endl;
+}
+
+void login_or_regis() {
+    load_users();
+    string username;
+    regex username_pattern("^[A-Za-z0-9_]{3,}$");
+
+    while (true) {
+        cout << "Masukkan username Anda (huruf, angka, underscore, min 3 karakter): "; cin >> username;
+
+        if (regex_match(username, username_pattern)) {
+            break;
+        } else {
+            cout << "Username tidak valid. Silakan coba lagi.\n";
+        }
+    }
+
+    if(registered_users.count(username)) {
+        cout << "Selamat datang kembali " << username << "! Selamat bermain!" << endl;
+    } else {
+        cout << "Registrasi baru untuk " << username << " berhasil! Selamat bermain!" << endl;
+        save_user(username);
+    }
+
+    #ifdef _WIN32
+        system("pause");
+    #else
+        cout << "Tekan ENTER untuk mulai...";
+        cin.ignore();
+        cin.get();
+    #endif
+}
+
+void show_animation() {
+    const string frames[] = {
+        R"( 
+  🎉 Horeee!!! Paket berhasil diantar! 🎉
+     \(^_^)/ 
+        |
+       / \
+        )",
+
+        R"(
+  🎊 Paket diterima dengan bahagia! 🎊
+     (^o^)/
+      \|
+      / \
+        )",
+
+        R"(
+  ✨ Terima kasih, kurir hebat! Cihuyyyy!! ✨
+     (^-^)b
+        |
+       / \
+        )"
+    };
+
+    for (int i = 0; i < 3; ++i) {
+        #ifdef _WIN32
+            system("cls");
+        #else
+            system("clear");
+        #endif
+
+        cout << frames[i] << endl;
+        cout << "\nSkor: " << score << endl;
+
+        #ifdef _WIN32
+            Sleep(1000);
+        #else
+            usleep(1000000); // 1 detik per frame
+        #endif
+    }
+}
+
+
 // Fungsi untuk menghasilkan peta
 void generateMap() {
     for (int i = 0; i < HEIGHT; i++) {
         for (int j = 0; j < WIDTH; j++) {
             if (i == 0 || i == HEIGHT - 1 || j == 0 || j == WIDTH - 1) {
-                map[i][j] = '#'; // Tembok pinggir
+                game_map[i][j] = '#'; // Tembok pinggir
             } else {
-                map[i][j] = ' '; // Jalan
+                game_map[i][j] = ' '; // Jalan
             }
         }
     }
 
     // Menambahkan rumah (tujuan)
-    map[HEIGHT - 2][WIDTH - 2] = 'H'; // Rumah
+    int hx = WIDTH - 2, hy = HEIGHT - 2;
+    game_map[hy][hx] = 'H';
+    house_loc.insert({hy, hx});
 
     // Menambahkan beberapa tembok acak di dalam map
     int wallCount = 20; // Jumlah tembok acak
@@ -54,8 +148,8 @@ void generateMap() {
         int y = rand() % (HEIGHT - 2) + 1;
 
         // Pastikan tidak di posisi kurir atau rumah
-        if (map[y][x] == ' ' && !(x == courierX && y == courierY) && map[y][x] != 'H') {
-            map[y][x] = '#'; // Tembok dalam map
+        if (game_map[y][x] == ' ' && !(x == courierX && y == courierY) && game_map[y][x] != 'H') {
+            game_map[y][x] = '#'; // Tembok dalam map
             wallAdded++;
         }
     }
@@ -69,14 +163,12 @@ void generateMap() {
         int y = rand() % (HEIGHT - 2) + 1;
 
         // Pastikan bukan di atas rumah, kurir, atau tembok
-        if (map[y][x] == ' ' && !(x == courierX && y == courierY)) {
-            map[y][x] = 'P';
+        if (game_map[y][x] == ' ' && !(x == courierX && y == courierY)) {
+            game_map[y][x] = 'P';
             added++;
         }
     }
 }
-
-
 
 // Fungsi untuk menampilkan peta
 void printMap() {
@@ -87,11 +179,15 @@ void printMap() {
         system("clear"); // Menghapus layar
     #endif
 
-    map[courierY][courierX] = 'C'; // Posisi kurir, diganti dengan simbol ASCII
-
     for (int i = 0; i < HEIGHT; i++) {
         for (int j = 0; j < WIDTH; j++) {
-            cout << map[i][j] << " ";
+            if (i == courierY && j == courierX) {
+                cout << 'C' << " "; // Prioritaskan tampilan kurir
+            } else if (house_loc.count({i, j})) {
+                cout << 'H' << " "; // Tetap tampilkan rumah
+            } else {
+                cout << game_map[i][j] << " ";
+            }
         }
         cout << endl;
     }
@@ -112,7 +208,7 @@ void moveCourier(char direction) {
     if (direction == 'd') nextX++;
 
     // Cek apakah menabrak tembok
-    if (map[nextY][nextX] == '#') {
+    if (game_map[nextY][nextX] == '#') {
 
         #ifdef _WIN32
             system("cls");
@@ -126,7 +222,7 @@ void moveCourier(char direction) {
     }
 
     // Hapus posisi lama kurir
-    map[courierY][courierX] = ' ';
+    game_map[courierY][courierX] = ' ';
 
     // Update posisi kurir
     courierX = nextX;
@@ -137,23 +233,66 @@ void moveCourier(char direction) {
 // Fungsi untuk mengambil paket
 void pickUpPackage() {
     if (carriedPackages.size() < 3) {
-        if (map[courierY][courierX] == 'P') {
+        if (game_map[courierY][courierX] == 'P') {
             carriedPackages.push('P');
-            map[courierY][courierX] = ' '; // Hapus paket dari peta
+            game_map[courierY][courierX] = ' '; // Hapus paket dari peta
         }
     }
 }
 
 // Fungsi untuk mengantar paket
 void deliverPackage() {
-    if (!carriedPackages.empty() && map[courierY][courierX] == 'H') {
-        carriedPackages.pop();
-        deliveryQueue.push(make_pair(courierY, courierX)); // Perbaiki sintaksis di sini
-        score += 10; // Tambah skor setiap antar paket
+    pair<int, int> pos = {courierY, courierX};
+
+    if(house_loc.count(pos)) {
+        if(!carriedPackages.empty()) {
+            carriedPackages.pop();
+            deliveryQueue.push(pos);
+            score += 10;
+
+            show_animation();
+
+            game_map[courierY][courierX] = ' '; // delete old house
+            house_loc.erase(pos);
+
+            // add new house
+            while (true) {
+                int x = rand() % (WIDTH - 2) + 1;
+                int y = rand() % (HEIGHT - 2) + 1;
+
+                if (game_map[y][x] == ' ' && !(x == courierX && y == courierY)) {
+                    game_map[y][x] = 'H';
+                    house_loc.insert({y, x});
+                    break;
+                }
+            }
+        }
     }
+    // if (game_map[courierY][courierX] == 'H') {
+    //     if (!carriedPackages.empty()) {
+    //         carriedPackages.pop();
+    //         deliveryQueue.push(make_pair(courierY, courierX));
+    //         score += 10;
+
+    //         game_map[courierY][courierX] = ' '; // delete old house
+
+    //         // add new house at random loc
+    //         while (true) {
+    //             int x = rand() % (WIDTH - 2) + 1;
+    //             int y = rand() % (HEIGHT - 2) + 1;
+
+    //             if (game_map[y][x] == ' ' && !(x == courierX && y == courierY)) {
+    //                 game_map[y][x] = 'H';
+    //                 break;
+    //             }
+    //         }
+    //     }
+    //     // if courier doesn't bring the package, the house remains there, doing nothing.
+    // }
 }
 
 int main() {
+    login_or_regis();
     srand(time(0));
     generateMap();
 

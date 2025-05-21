@@ -134,10 +134,17 @@ void generateMap() {
         }
     }
 
-    // Menambahkan rumah (tujuan)
-    int hx = WIDTH - 2, hy = HEIGHT - 2;
-    game_map[hy][hx] = 'H';
-    house_loc.insert({hy, hx});
+    // add destination house at random loc
+    while (true) {
+        int x = rand() % (WIDTH - 2) + 1;
+        int y = rand() % (HEIGHT - 2) + 1;
+
+        if (game_map[y][x] == ' ' && !(x == courierX && y == courierY)) {
+            game_map[y][x] = 'H';
+            house_loc.insert({y, x});
+            break;
+        }
+    }
 
     // Menambahkan beberapa tembok acak di dalam map
     int wallCount = 20; // Jumlah tembok acak

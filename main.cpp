@@ -44,10 +44,15 @@ vector<pair<int, int> > house_locations; // house locations - fixed spacing
 map<pair<int, int>, vector<pair<int, int> > > graph; // Graph structure for navigation - fixed spacing
 bool all_packages_delivered();
 void show_win_animation();
+bool is_time_up();
+int get_remaining_time();
 
 int score = 0; // Skor
 int move_limit = 0; // move limit courier
 int house_count = 3; // Number of houses (default 3)
+
+time_t start_time;
+int TIME_LIMIT = 45;
 
 // Helper function to check if terminal supports UTF-8
 bool check_utf8_support() {
@@ -103,7 +108,7 @@ void login_or_regis() {
     regex username_pattern("^[A-Za-z0-9_]{3,}$");
 
     while (true) {
-        cout << "Masukkan username Anda (huruf, angka, underscore, min 3 karakter): "; cin >> username;
+        cout << "\nMasukkan username Anda (huruf, angka, underscore, min 3 karakter): "; cin >> username;
 
         if (regex_match(username, username_pattern)) {
             break;
@@ -113,9 +118,9 @@ void login_or_regis() {
     }
 
     if(registered_users.count(username)) {
-        cout << "Selamat datang kembali " << username << "! Selamat bermain!" << endl;
+        cout << "\nSelamat datang kembali " << username << "! Selamat bermain!\n" << endl;
     } else {
-        cout << "Registrasi baru untuk " << username << " berhasil! Selamat bermain!" << endl;
+        cout << "\nRegistrasi baru untuk " << username << " berhasil! Selamat bermain!\n" << endl;
         save_user(username);
     }
 
@@ -423,6 +428,7 @@ void printMap() {
     cout << "\nSkor: " << score << endl;
     cout << "Paket dibawa: " << carriedPackages.size() << "/3" << endl;
     cout << "Langkah tersisa: " << move_limit << endl;
+    cout << "Sisa waktu: " << get_remaining_time() << " detik" << endl;
     
     // Display direction to nearest house if carrying packages
     if (!house_locations.empty() && !carriedPackages.empty()) {
@@ -475,12 +481,12 @@ void moveCourier(char direction) {
     courierX = nextX;
     courierY = nextY;
 
-    move_limit--;
-    if (move_limit <= 0) {
-        cout << "Move limit habis! Kamu kelelahan dan gagal mengantar!" << endl;
-        cout << "Skor akhir: " << score << endl;
-        exit(0);
-    }
+    // move_limit--;
+    // if (move_limit <= 0) {
+    //     cout << "Move limit habis! Kamu kelelahan dan gagal mengantar!" << endl;
+    //     cout << "Skor akhir: " << score << endl;
+    //     exit(0);
+    // }
 }
 
 // Fungsi untuk mengambil paket
@@ -528,11 +534,11 @@ void deliverPackage() {
         // Rebuild the graph after map changes
         build_graph();
 
-        if (house_count == 1) move_limit += 25;
-        else if (house_count == 2) move_limit += 23;
-        else if (house_count == 3) move_limit += 20;
-        else if (house_count == 4) move_limit += 15;
-        else if (house_count == 5) move_limit += 10;
+        if (house_count == 1) TIME_LIMIT += 15;
+        else if (house_count == 2) TIME_LIMIT += 13;
+        else if (house_count == 3) TIME_LIMIT += 10;
+        else if (house_count == 4) TIME_LIMIT += 7;
+        else if (house_count == 5) TIME_LIMIT += 5;
 
         if(all_packages_delivered()) {
             show_win_animation();
@@ -569,13 +575,13 @@ void show_win_animation() {
         cout << line;
 
         #ifdef _WIN32
-            Sleep(1000);
+            Sleep(700);
         #else
-            usleep(1000000); // 1 detik antar baris
+            usleep(700000); // 0.7 detik antar baris
         #endif
     }
 
-    cout << score << endl;
+    cout << score << " point" << endl;
     exit(0);
 }
 
@@ -613,9 +619,8 @@ void show_intro() {
 }
 
 void ask_house_count() {
-    cout << "Berapa rumah ingin kamu sediakan di peta? (1-5): ";
     int input;
-    cin >> input;
+    cout << "Berapa rumah ingin kamu sediakan di peta? (1-5): "; cin >> input;
     
     if (input >= 1 && input <= 5) {
         house_count = input;
@@ -623,6 +628,17 @@ void ask_house_count() {
         cout << "Input tidak valid. Menggunakan nilai default (3)." << endl;
         house_count = 3;
     }
+}
+
+bool is_time_up() {
+    time_t now = time(NULL);
+    return difftime(now, start_time) >= TIME_LIMIT;
+}
+
+int get_remaining_time() {
+    time_t now = time(NULL);
+    int remaining = TIME_LIMIT - static_cast<int>(difftime(now, start_time));
+    return remaining > 0 ? remaining : 0;
 }
 
 int main() {
@@ -636,11 +652,13 @@ int main() {
     show_intro();
     ask_house_count();
     
-    generateMap();
+    generateMap();    
+
+    cout << "Waktu kamu adalah: " << TIME_LIMIT << " detik" << endl;
     
     // Calculate move limit based on shortest path to houses
-    move_limit = calculate_move_limit();
-    cout << "Move limit kamu adalah: " << move_limit << " langkah." << endl;
+    // move_limit = calculate_move_limit();
+    // cout << "Move limit kamu adalah: " << move_limit << " langkah." << endl;
     
     #ifdef _WIN32
         system("pause");
@@ -650,13 +668,21 @@ int main() {
         cin.get();
     #endif
 
+    start_time = time(NULL);
+
     while (true) {
         printMap();
         char move;
         cin >> move;
+
+        if(is_time_up()) {
+            cout << "\n⏰ Waktu habis! Kamu gagal mengantar semua paket!" << endl;
+            cout << "Skor akhir: " << score << " point" << endl;
+            break;
+        }
         
         if (move == 'q' || move == 'Q') {
-            cout << "Game berakhir! Skor akhir: " << score << endl;
+            cout << "Game berakhir! Skor akhir: " << score << " point" << endl;
             break;
         }
         

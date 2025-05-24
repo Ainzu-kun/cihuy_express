@@ -211,42 +211,42 @@ int calculate_shortest_path(int startY, int startX, int targetY, int targetX) {
 }
 
 // Calculate a reasonable move limit based on the minimum distance to any house
-int calculate_move_limit() {
-    vector<pair<int, int>> package_locations;
+// int calculate_move_limit() {
+//     vector<pair<int, int>> package_locations;
 
-    // Cari semua posisi paket
-    for (int y = 1; y < HEIGHT - 1; y++) {
-        for (int x = 1; x < WIDTH - 1; x++) {
-            if (game_map[y][x] == 'P') {
-                package_locations.push_back(make_pair(y, x));
-            }
-        }
-    }
+//     // Cari semua posisi paket
+//     for (int y = 1; y < HEIGHT - 1; y++) {
+//         for (int x = 1; x < WIDTH - 1; x++) {
+//             if (game_map[y][x] == 'P') {
+//                 package_locations.push_back(make_pair(y, x));
+//             }
+//         }
+//     }
 
-    if (package_locations.empty() || house_locations.empty()) {
-        return 30; // fallback jika tidak ada paket/rumah
-    }
+//     if (package_locations.empty() || house_locations.empty()) {
+//         return 30; // fallback jika tidak ada paket/rumah
+//     }
 
-    int min_total_distance = INT_MAX;
+//     int min_total_distance = INT_MAX;
 
-    // Hitung semua kombinasi: kurir -> paket -> rumah
-    for (auto& pkg : package_locations) {
-        int dist_to_pkg = calculate_shortest_path(courierY, courierX, pkg.first, pkg.second);
-        if (dist_to_pkg == -1) continue;
+//     // Hitung semua kombinasi: kurir -> paket -> rumah
+//     for (auto& pkg : package_locations) {
+//         int dist_to_pkg = calculate_shortest_path(courierY, courierX, pkg.first, pkg.second);
+//         if (dist_to_pkg == -1) continue;
 
-        for (auto& house : house_locations) {
-            int dist_to_house = calculate_shortest_path(pkg.first, pkg.second, house.first, house.second);
-            if (dist_to_house == -1) continue;
+//         for (auto& house : house_locations) {
+//             int dist_to_house = calculate_shortest_path(pkg.first, pkg.second, house.first, house.second);
+//             if (dist_to_house == -1) continue;
 
-            int total = dist_to_pkg + dist_to_house;
-            if (total < min_total_distance) {
-                min_total_distance = total;
-            }
-        }
-    }
+//             int total = dist_to_pkg + dist_to_house;
+//             if (total < min_total_distance) {
+//                 min_total_distance = total;
+//             }
+//         }
+//     }
 
-    return (min_total_distance > 0 && min_total_distance < INT_MAX) ? min_total_distance * 2 : 30;
-}
+//     return (min_total_distance > 0 && min_total_distance < INT_MAX) ? min_total_distance * 2 : 30;
+// }
 
 // Find nearest house from current position
 pair<int, int> find_nearest_house() {
@@ -282,9 +282,9 @@ void show_animation() {
         cout << "\nSkor: " << score << endl;
 
         #ifdef _WIN32
-            Sleep(1000);
+            Sleep(700);
         #else
-            usleep(1000000); // 1 detik per frame
+            usleep(700000); // 0.7 detik per frame
         #endif
     }
 }

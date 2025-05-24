@@ -654,7 +654,7 @@ int main() {
     
     generateMap();    
 
-    cout << "Waktu kamu adalah: " << TIME_LIMIT << " detik" << endl;
+    cout << "Waktu kamu adalah: " << TIME_LIMIT << " detik\n" << endl;
     
     // Calculate move limit based on shortest path to houses
     // move_limit = calculate_move_limit();

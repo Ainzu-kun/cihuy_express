@@ -29,6 +29,7 @@ const string EMOJI_COURIER = "🛵"; // Motorcycle
 const string EMOJI_PACKAGE = "📦"; // Package
 const string EMOJI_HOUSE = "🏠";   // House
 const string EMOJI_WALL = "🧱";    // Wall/brick
+const string EMOJI_CLOCK = "⏰"; // Clock
 const string EMOJI_ROAD = "  ";    // Empty road (double space for alignment)
 
 // Flag to determine if emojis can be used
@@ -210,44 +211,6 @@ int calculate_shortest_path(int startY, int startX, int targetY, int targetX) {
     return -1; // no path found
 }
 
-// Calculate a reasonable move limit based on the minimum distance to any house
-// int calculate_move_limit() {
-//     vector<pair<int, int>> package_locations;
-
-//     // Cari semua posisi paket
-//     for (int y = 1; y < HEIGHT - 1; y++) {
-//         for (int x = 1; x < WIDTH - 1; x++) {
-//             if (game_map[y][x] == 'P') {
-//                 package_locations.push_back(make_pair(y, x));
-//             }
-//         }
-//     }
-
-//     if (package_locations.empty() || house_locations.empty()) {
-//         return 30; // fallback jika tidak ada paket/rumah
-//     }
-
-//     int min_total_distance = INT_MAX;
-
-//     // Hitung semua kombinasi: kurir -> paket -> rumah
-//     for (auto& pkg : package_locations) {
-//         int dist_to_pkg = calculate_shortest_path(courierY, courierX, pkg.first, pkg.second);
-//         if (dist_to_pkg == -1) continue;
-
-//         for (auto& house : house_locations) {
-//             int dist_to_house = calculate_shortest_path(pkg.first, pkg.second, house.first, house.second);
-//             if (dist_to_house == -1) continue;
-
-//             int total = dist_to_pkg + dist_to_house;
-//             if (total < min_total_distance) {
-//                 min_total_distance = total;
-//             }
-//         }
-//     }
-
-//     return (min_total_distance > 0 && min_total_distance < INT_MAX) ? min_total_distance * 2 : 30;
-// }
-
 // Find nearest house from current position
 pair<int, int> find_nearest_house() {
     int min_dist = INT_MAX;
@@ -428,7 +391,7 @@ void printMap() {
     cout << "\nSkor: " << score << endl;
     cout << "Paket dibawa: " << carriedPackages.size() << "/3" << endl;
     cout << "Langkah tersisa: " << move_limit << endl;
-    cout << "Sisa waktu: " << get_remaining_time() << " detik" << endl;
+    cout << EMOJI_CLOCK << " Sisa waktu: " << get_remaining_time() << " detik" << endl;
     
     // Display direction to nearest house if carrying packages
     if (!house_locations.empty() && !carriedPackages.empty()) {
@@ -480,13 +443,6 @@ void moveCourier(char direction) {
     // Update posisi kurir
     courierX = nextX;
     courierY = nextY;
-
-    // move_limit--;
-    // if (move_limit <= 0) {
-    //     cout << "Move limit habis! Kamu kelelahan dan gagal mengantar!" << endl;
-    //     cout << "Skor akhir: " << score << endl;
-    //     exit(0);
-    // }
 }
 
 // Fungsi untuk mengambil paket
@@ -592,7 +548,10 @@ void show_intro() {
     cout << "=======================================================" << endl;
     cout << "Kamu adalah seorang kurir yang harus mengantar paket   " << endl;
     cout << "ke berbagai rumah di kota. Ambil paket dan antarkan    " << endl;
-    cout << "ke rumah untuk mendapatkan poin!                       " << endl;
+    cout << "ke rumah sebelum waktunya habis untuk mendapatkan      " << endl;
+    cout << "poin! Setiap setelah kamu berhasil mengantarkan paket  " << endl;
+    cout << "kerumah, maka kamu akan mendapatkan waktu tambahan!    " << endl;
+    cout << "Jangan lupa, hindari tembok yang menghalangi jalanmu!  " << endl;
     cout << endl;
     
     if (use_emojis) {
@@ -601,13 +560,23 @@ void show_intro() {
         cout << EMOJI_PACKAGE << " = Paket (ambil ini!)" << endl;
         cout << EMOJI_HOUSE << " = Rumah (antar paket ke sini!)" << endl;
         cout << EMOJI_WALL << " = Tembok (hindari ini!)" << endl;
+        cout << EMOJI_CLOCK << " = Waktu / time (sisa waktu kamu!)" << endl;
     } else {
         cout << "Petunjuk:" << endl;
         cout << "C = Kurir (kamu)" << endl;
         cout << "P = Paket (ambil ini!)" << endl;
         cout << "H = Rumah (antar paket ke sini!)" << endl;
         cout << "# = Tembok (hindari ini!)" << endl;
+        cout << "T = Waktu / time (sisa waktu kamu!)" << endl;
     }
+
+    cout << endl;
+    cout << "Level: " << endl;
+    cout << "1. Mudah         ==>> 1 rumah, 2 paket, tambahan waktu 15 detik" << endl;
+    cout << "2. Biasa aja     ==>> 2 rumah, 3 paket, tambahan waktu 13 detik" << endl;
+    cout << "3. Sedang        ==>> 3 rumah, 4 paket, tambahan waktu 10 detik" << endl;
+    cout << "4. Lumayan Sulit ==>> 4 rumah, 5 paket, tambahan waktu 7 detik" << endl;
+    cout << "5. Sulit         ==>> 5 rumah, 6 paket, tambahan waktu 5 detik" << endl;
     
     cout << endl;
     cout << "Kontrol: W (atas), A (kiri), S (bawah), D (kanan)" << endl;
@@ -620,7 +589,7 @@ void show_intro() {
 
 void ask_house_count() {
     int input;
-    cout << "Berapa rumah ingin kamu sediakan di peta? (1-5): "; cin >> input;
+    cout << "Pilih level berapa yang ingin kamu tantang 🫵🏻🤏🏻? (1-5): "; cin >> input;
     
     if (input >= 1 && input <= 5) {
         house_count = input;
@@ -654,11 +623,7 @@ int main() {
     
     generateMap();    
 
-    cout << "Waktu kamu adalah: " << TIME_LIMIT << " detik\n" << endl;
-    
-    // Calculate move limit based on shortest path to houses
-    // move_limit = calculate_move_limit();
-    // cout << "Move limit kamu adalah: " << move_limit << " langkah." << endl;
+    cout << EMOJI_CLOCK << " Waktu kamu adalah: " << TIME_LIMIT << " detik" << EMOJI_CLOCK << "\n" << endl;
     
     #ifdef _WIN32
         system("pause");
@@ -676,7 +641,7 @@ int main() {
         cin >> move;
 
         if(is_time_up()) {
-            cout << "\n⏰ Waktu habis! Kamu gagal mengantar semua paket!" << endl;
+            cout << "\n" << EMOJI_CLOCK << "Waktu habis! Kamu gagal mengantar semua paket!" << endl;
             cout << "Skor akhir: " << score << " point" << endl;
             break;
         }

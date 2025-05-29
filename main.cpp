@@ -43,13 +43,16 @@ stack<char> carriedPackages; // Stack untuk membawa paket
 set<string> registered_users; // save registered user
 vector<pair<int, int> > house_locations; // house locations - fixed spacing
 map<pair<int, int>, vector<pair<int, int> > > graph; // Graph structure for navigation - fixed spacing
+map<string, int> user_scores;
 bool all_packages_delivered();
 void show_win_animation();
 bool is_time_up();
 int get_remaining_time();
+string current_user;
 
 int score = 0; // Skor
 int move_limit = 0; // move limit courier
+int old_highscore = 0;
 int house_count = 3; // Number of houses (default 3)
 
 time_t start_time;
@@ -93,14 +96,21 @@ void load_users() {
     ifstream infile("users.txt");
 
     string username;
-    while(infile >> username) {
+    int highscore;
+
+    while(infile >> username >> highscore) {
         registered_users.insert(username);
+        user_scores[username] = highscore;
     }
 }
 
-void save_user(const string &username) {
+void save_user(const string &username, int score) {
+    user_scores[username] = score;
+
     ofstream outfile("users.txt", ios::app);
-    outfile << username << endl;
+    for (const auto& pair : user_scores) {
+        outfile << pair.first << " " << pair.second << endl;
+    }
 }
 
 void login_or_regis() {
@@ -118,11 +128,15 @@ void login_or_regis() {
         }
     }
 
+    current_user = username;
+
     if(registered_users.count(username)) {
-        cout << "\nSelamat datang kembali " << username << "! Selamat bermain!\n" << endl;
+        old_highscore = user_scores[username];
+        cout << "\nSelamat datang kembali " << username << "! High Score kamu sebelumnya: " << user_scores[username] << " point!" << endl << endl;
     } else {
-        cout << "\nRegistrasi baru untuk " << username << " berhasil! Selamat bermain!\n" << endl;
-        save_user(username);
+        cout << "\nRegistrasi baru untuk " << username << " berhasil! Selamat bermain!\n\n";
+        registered_users.insert(username);
+        user_scores[username] = 0;
     }
 
     #ifdef _WIN32
@@ -437,6 +451,16 @@ void moveCourier(char direction) {
 
         cout << "💥 GAME OVER! Kamu menabrak tembok! 💥" << endl;
         cout << "Skor akhir: " << score << endl;
+
+        cout << "High score sebelumnya: " << old_highscore << " point" << endl;
+
+        if (score > old_highscore) {
+            cout << "\n🎉 Selamat! Skor baru kamu (" << score << ") adalah rekor baru! 🎉\n";
+            save_user(current_user, score);
+        } else {
+            cout << "\nSkor kamu belum mengalahkan rekor sebelumnya 😢\n";
+            cout << "Skor tertinggi kamu tetap: " << old_highscore << " point\n";
+        }
         exit(0); // Keluar dari program
     }
 
@@ -518,7 +542,6 @@ void show_win_animation() {
         "\n🏆 SELAMAT! KAMU TELAH MENGANTARKAN SEMUA PAKET! 🏆\n",
         "     \\(^_^)/     🎉🎉🎉\n",
         "   Kurir terbaik sepanjang masa!\n",
-        " Skor akhir kamu: "
     };
 
     #ifdef _WIN32
@@ -537,7 +560,17 @@ void show_win_animation() {
         #endif
     }
 
-    cout << score << " point" << endl;
+    cout << "Skor akhir kamu: " << score << " point" << endl;
+    cout << "High score sebelumnya: " << old_highscore << " point" << endl;
+
+    if (score > old_highscore) {
+        cout << "\n🎉 Selamat! Skor baru kamu (" << score << ") adalah rekor baru! 🎉\n";
+        save_user(current_user, score);
+    } else {
+        cout << "\nSkor kamu belum mengalahkan rekor sebelumnya 😢\n";
+        cout << "Skor tertinggi kamu tetap: " << old_highscore << " point\n";
+    }
+
     exit(0);
 }
 
@@ -642,12 +675,32 @@ int main() {
 
         if(is_time_up()) {
             cout << "\n" << EMOJI_CLOCK << "Waktu habis! Kamu gagal mengantar semua paket!" << endl;
-            cout << "Skor akhir: " << score << " point" << endl;
+            cout << "Skor akhir kamu: " << score << " point" << endl;
+
+            cout << "High score sebelumnya: " << old_highscore << " point" << endl;
+
+            if (score > old_highscore) {
+                cout << "\n🎉 Selamat! Skor baru kamu (" << score << ") adalah rekor baru! 🎉\n";
+                save_user(current_user, score);
+            } else {
+                cout << "\nSkor kamu belum mengalahkan rekor sebelumnya 😢\n";
+                cout << "Skor tertinggi kamu tetap: " << old_highscore << " point\n";
+            }
             break;
         }
         
         if (move == 'q' || move == 'Q') {
             cout << "Game berakhir! Skor akhir: " << score << " point" << endl;
+
+            cout << "High score sebelumnya: " << old_highscore << " point" << endl;
+
+            if (score > old_highscore) {
+                cout << "\n🎉 Selamat! Skor baru kamu (" << score << ") adalah rekor baru! 🎉\n";
+                save_user(current_user, score);
+            } else {
+                cout << "\nSkor kamu belum mengalahkan rekor sebelumnya 😢\n";
+                cout << "Skor tertinggi kamu tetap: " << old_highscore << " point\n";
+            }
             break;
         }
         

@@ -9,6 +9,7 @@
 #include <fstream>
 #include <regex>
 #include <algorithm>
+#include <iomanip>
 #ifdef _WIN32
     #include <windows.h>
     #include <fcntl.h>
@@ -45,11 +46,15 @@ vector<pair<int, int> > house_locations; // house locations - fixed spacing
 map<pair<int, int>, vector<pair<int, int> > > graph; // Graph structure for navigation - fixed spacing
 map<string, int> user_scores;
 bool all_packages_delivered();
-void show_win_animation();
 bool is_time_up();
 int get_remaining_time();
-string current_user;
+void show_win_animation();
+void post_game_options();
+void show_leaderboard();
+void show_intro();
+void ask_house_count();
 
+string current_user;
 int score = 0; // Skor
 int move_limit = 0; // move limit courier
 int old_highscore = 0;
@@ -107,7 +112,7 @@ void load_users() {
 void save_user(const string &username, int score) {
     user_scores[username] = score;
 
-    ofstream outfile("users.txt", ios::app);
+    ofstream outfile("users.txt", ios::trunc);
     for (const auto& pair : user_scores) {
         outfile << pair.first << " " << pair.second << endl;
     }
@@ -135,12 +140,14 @@ void login_or_regis() {
         cout << "\nSelamat datang kembali " << username << "! High Score kamu sebelumnya: " << user_scores[username] << " point!" << endl << endl;
     } else {
         cout << "\nRegistrasi baru untuk " << username << " berhasil! Selamat bermain!\n\n";
-        registered_users.insert(username);
         user_scores[username] = 0;
+        old_highscore = 0;
+        save_user(username, 0);
     }
 
     #ifdef _WIN32
         system("pause");
+        cout << "\n";
     #else
         cout << "Tekan ENTER untuk mulai...";
         cin.ignore();
@@ -461,7 +468,17 @@ void moveCourier(char direction) {
             cout << "\nSkor kamu belum mengalahkan rekor sebelumnya 😢\n";
             cout << "Skor tertinggi kamu tetap: " << old_highscore << " point\n";
         }
-        exit(0); // Keluar dari program
+        
+        #ifdef _WIN32
+            cout << "\n";
+            system("pause");
+        #else
+            cout << "\nTekan ENTER untuk mulai...";
+            cin.ignore();
+            cin.get();
+        #endif
+
+        post_game_options();
     }
 
     // Update posisi kurir
@@ -571,11 +588,124 @@ void show_win_animation() {
         cout << "Skor tertinggi kamu tetap: " << old_highscore << " point\n";
     }
 
-    exit(0);
+    #ifdef _WIN32
+        cout << "\n";
+        system("pause");
+    #else
+        cout << "\nTekan ENTER untuk mulai...";
+        cin.ignore();
+        cin.get();
+    #endif
+
+    post_game_options();
+}
+
+void post_game_options() {
+    string choice;
+
+    #ifdef _WIN32
+        system("cls");
+    #else
+        system("clear");
+    #endif
+
+    cout << "=======================================================" << endl;
+    cout << "          CIHUY EXPRESS - DELIVERY GAME                " << endl;
+    cout << "=======================================================" << endl;
+    cout << "\n[1]Main lagiiii!!!\n[2]Lihat leaderbord\n[3]Keluar ah cape\n\nSilakan pilih opsi (1-3): "; cin >> choice;
+
+    if(choice == "1") {
+        score = 0;
+        carriedPackages = stack<char>();
+        TIME_LIMIT = 45;
+
+        courierX = WIDTH / 2;
+        courierY = HEIGHT / 2;
+
+        show_intro();
+        ask_house_count();
+        generateMap();
+        start_time = time(NULL);
+    } else if(choice == "2") {
+        show_leaderboard();
+    } else if(choice == "3") {
+        cout << "\n 👋 Terima kasih telah bermain " << current_user << "! Sampai jumpa lagi! 👋\n\n";
+        exit(0);
+    } else {
+        cout << "Pilihan tidak valid. Silakan pilih berdasarkan opsi yang tersedia!\n";
+        #ifdef _WIN32
+            Sleep(1000);
+        #else
+            usleep(1000000);
+        #endif
+        post_game_options();
+    }
+}
+
+void show_leaderboard() {
+    vector<pair<string, int>> leaderboard;
+
+    ifstream infile("users.txt");
+    string line;
+    while (getline(infile, line)) {
+        size_t space_pos = line.find(' ');
+        if (space_pos != string::npos) {
+            string username = line.substr(0, space_pos);
+            int score = stoi(line.substr(space_pos + 1));
+            leaderboard.push_back({username, score});
+        }
+    }
+
+    // Urutkan dari skor tertinggi ke terendah
+    sort(leaderboard.begin(), leaderboard.end(), [](auto &a, auto &b) {
+        return a.second > b.second;
+    });
+
+    cout << "\n========== 📊 LEADERBOARD 📊 ==========\n";
+    cout << "  Peringkat | Nama         | Skor\n";
+    cout << "--------------------------------------\n";
+
+    int rank = 1;
+    for (auto &entry : leaderboard) {
+        cout << "     " << rank << "     | " << setw(12) << left << entry.first
+             << " | " << entry.second << " point" << endl;
+        rank++;
+        if (rank > 10) break;
+    }
+
+    // Cari posisi current_user di leaderboard
+    int user_rank = 1;
+    for (auto &entry : leaderboard) {
+        if (entry.first == current_user) {
+            break;
+        }
+        user_rank++;
+    }
+
+    cout << "--------------------------------------\n";
+    cout << "Posisi kamu, " << current_user << ": peringkat ke-" << user_rank << " dari " << leaderboard.size() << " pemain\n";
+    cout << "======================================\n\n";
+
+    #ifdef _WIN32
+        cout << "\n";
+        system("pause");
+    #else
+        cout << "\nTekan ENTER untuk kembali...";
+        cin.ignore();
+        cin.get();
+    #endif
+
+    post_game_options();
 }
 
 
 void show_intro() {
+    #ifdef _WIN32
+        system("cls");
+    #else
+        system("clear");
+    #endif
+
     cout << "=======================================================" << endl;
     cout << "          CIHUY EXPRESS - DELIVERY GAME                " << endl;
     cout << "=======================================================" << endl;
@@ -613,11 +743,7 @@ void show_intro() {
     
     cout << endl;
     cout << "Kontrol: W (atas), A (kiri), S (bawah), D (kanan)" << endl;
-    cout << "=======================================================" << endl;
-    cout << "Tekan ENTER untuk mulai..." << endl;
-    
-    cin.ignore();
-    cin.get();
+    cout << "=======================================================" << endl << endl;
 }
 
 void ask_house_count() {
@@ -654,9 +780,9 @@ int main() {
     show_intro();
     ask_house_count();
     
-    generateMap();    
+    generateMap();
 
-    cout << EMOJI_CLOCK << " Waktu kamu adalah: " << TIME_LIMIT << " detik" << EMOJI_CLOCK << "\n" << endl;
+    cout << EMOJI_CLOCK << " Waktu kamu adalah: " << TIME_LIMIT << " detik " << EMOJI_CLOCK << "\n" << endl;
     
     #ifdef _WIN32
         system("pause");
@@ -686,7 +812,17 @@ int main() {
                 cout << "\nSkor kamu belum mengalahkan rekor sebelumnya 😢\n";
                 cout << "Skor tertinggi kamu tetap: " << old_highscore << " point\n";
             }
-            break;
+
+            #ifdef _WIN32
+                cout << "\n";
+                system("pause");
+            #else
+                cout << "\nTekan ENTER untuk mulai...";
+                cin.ignore();
+                cin.get();
+            #endif
+
+            post_game_options();
         }
         
         if (move == 'q' || move == 'Q') {
@@ -701,7 +837,17 @@ int main() {
                 cout << "\nSkor kamu belum mengalahkan rekor sebelumnya 😢\n";
                 cout << "Skor tertinggi kamu tetap: " << old_highscore << " point\n";
             }
-            break;
+
+            #ifdef _WIN32
+                cout << "\n";
+                system("pause");
+            #else
+                cout << "\nTekan ENTER untuk mulai...";
+                cin.ignore();
+                cin.get();
+            #endif
+
+            post_game_options();
         }
         
         if (move == 'w' || move == 'a' || move == 's' || move == 'd') {

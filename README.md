@@ -5,9 +5,33 @@
   </picture>
 </p>
 
-## Cihuy Express
+## 🛵 Cihuy Express - Delivery Game
 
-cihuy express is a project for the final semester exam for a CLI-based data structure and algorithm course.
+**Cihuy Express** is a simple C++ based terminal game that invites you to play the role of a courier who must deliver goods to various houses before time runs out! This game is made for practicing data structures and algorithm logic using stacks, maps, queue and graph.
+
+## 📂 Setup Guide
+
+### 1. Clone This Repo
+
+```bash
+git clone https://github.com/your-github-username/cihuy_express.git
+cd cihuy_express
+```
+
+### 2. Compile and Run
+
+```bash
+g++ main.cpp -o main
+./main
+```
+
+## 🤝 Contributing
+
+Want to contribute? Feel free to fork this repo and create a pull request, or open an issue if you find a bug or new idea.
+
+## 📃 License
+
+The cihuy express game is open source software licensed under the <a href="LICENSE">MIT LICENSE</a>.
 
 ## Team
 

@@ -1,10 +1,17 @@
-![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)
-
 <p align="center">
   <br />
   <picture>
     <img src="https://ik.imagekit.io/rafidhp/cihuy_express/food-delivery-cute-man-riding-motorcycles-cartoon-art-illustration.png?updatedAt=1747706676001" width="200px">
   </picture>
+</p>
+
+<p align="center">
+  <a href="https://github.com/rafidhp/cihuy_express">
+    <img src="https://img.shields.io/badge/GitHub-cihuy__express-blue?logo=github&style=flat-square" alt="GitHub Repo">
+  </a>
+  <a href="https://opensource.org/licenses/MIT">
+    <img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="License: MIT">
+  </a>
 </p>
 
 ## 🛵 Cihuy Express - Delivery Game

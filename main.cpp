@@ -464,6 +464,7 @@ void moveCourier(char direction) {
         if (score > old_highscore) {
             cout << "\n🎉 Selamat! Skor baru kamu (" << score << ") adalah rekor baru! 🎉\n";
             save_user(current_user, score);
+            old_highscore = score;
         } else {
             cout << "\nSkor kamu belum mengalahkan rekor sebelumnya 😢\n";
             cout << "Skor tertinggi kamu tetap: " << old_highscore << " point\n";
@@ -557,7 +558,7 @@ bool all_packages_delivered() {
 void show_win_animation() {
     const string win_frame[] = {
         "\n🏆 SELAMAT! KAMU TELAH MENGANTARKAN SEMUA PAKET! 🏆\n",
-        "     \\(^_^)/     🎉🎉🎉\n",
+        "     \\(^_^)/     🎉🎉🎉\n\n",
         "   Kurir terbaik sepanjang masa!\n",
     };
 
@@ -583,6 +584,7 @@ void show_win_animation() {
     if (score > old_highscore) {
         cout << "\n🎉 Selamat! Skor baru kamu (" << score << ") adalah rekor baru! 🎉\n";
         save_user(current_user, score);
+        old_highscore = score;
     } else {
         cout << "\nSkor kamu belum mengalahkan rekor sebelumnya 😢\n";
         cout << "Skor tertinggi kamu tetap: " << old_highscore << " point\n";
@@ -830,6 +832,7 @@ int main() {
         if (score > old_highscore) {
             cout << "\n🎉 Selamat! Skor baru kamu (" << score << ") adalah rekor baru! 🎉\n";
             save_user(current_user, score);
+            old_highscore = score;
         } else {
             cout << "\nSkor kamu belum mengalahkan rekor sebelumnya 😢\n";
             cout << "Skor tertinggi kamu tetap: " << old_highscore << " point\n";
@@ -855,6 +858,7 @@ int main() {
         if (score > old_highscore) {
             cout << "\n🎉 Selamat! Skor baru kamu (" << score << ") adalah rekor baru! 🎉\n";
             save_user(current_user, score);
+            old_highscore = score;
         } else {
             cout << "\nSkor kamu belum mengalahkan rekor sebelumnya 😢\n";
             cout << "Skor tertinggi kamu tetap: " << old_highscore << " point\n";

@@ -769,15 +769,22 @@ void show_intro()
          << endl;
 }
 
-void ask_house_count() {
+void ask_house_count()
+{
     int input;
-    cout << "Pilih level berapa yang ingin kamu tantang 🫵🏻🤏🏻? (1-5): "; cin >> input;
-    
-    if (input >= 1 && input <= 5) {
-        house_count = input;
-    } else {
-        cout << "Input tidak valid. Menggunakan nilai default (3)." << endl;
-        house_count = 3;
+    while (true)
+    {
+        cout << "Pilih level berapa yang ingin kamu tantang? (1-5): ";
+        cin >> input;
+
+        // Cek apakah input gagal (bukan angka)
+        if (cin.fail())
+        {
+            cin.clear();             // Clear error flag
+            cin.ignore(10000, '\n'); // Ignore invalid characters
+            cout << "Input tidak valid! Harap masukkan angka antara 1-5." << endl;
+            continue;
+        }
     }
 }
 

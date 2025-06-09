@@ -36,7 +36,7 @@ g++ main.cpp -o main
 
 ## 🤝 Contributing
 
-This project adopts the Cihuy Express [Code of Conduct][]. Want to contribute? Feel free to fork this repo and create a pull request, or open an issue if you find a bug or new idea.
+This project adopts the Cihuy Express [Code of Conduct][CODE_OF_CONDACT]. Want to contribute? Feel free to fork this repo and create a pull request, or open an issue if you find a bug or new idea.
 
 ## 📃 License
 

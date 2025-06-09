@@ -11,11 +11,11 @@
 #include <algorithm>
 #include <iomanip>
 #ifdef _WIN32
-    #include <windows.h>
-    #include <fcntl.h>
-    #include <io.h>
+#include <windows.h>
+#include <fcntl.h>
+#include <io.h>
 #else
-    #include <unistd.h>
+#include <unistd.h>
 #endif
 
 using namespace std;
@@ -25,25 +25,25 @@ const int WIDTH = 30;
 const int HEIGHT = 15;
 char game_map[HEIGHT][WIDTH];
 
-// Emoji characters
-const string EMOJI_COURIER = "🛵"; // Motorcycle
-const string EMOJI_PACKAGE = "📦"; // Package
-const string EMOJI_HOUSE = "🏠";   // House
-const string EMOJI_WALL = "🧱";    // Wall/brick
-const string EMOJI_CLOCK = "⏰"; // Clock
-const string EMOJI_ROAD = "  ";    // Empty road (double space for alignment)
+// Emoji
+const string EMOJI_COURIER = "🛵"; // Motor
+const string EMOJI_PACKAGE = "📦"; // Paket
+const string EMOJI_HOUSE = "🏠";   // Rumah
+const string EMOJI_WALL = "🧱";    // Tembok
+const string EMOJI_CLOCK = "⏰";   // Jam
+const string EMOJI_ROAD = "  ";    // Jalan
 
-// Flag to determine if emojis can be used
+// Penanda emoji dgunakan
 bool use_emojis = false;
 
 // Posisi awal kurir
 int courierX = WIDTH / 2;
 int courierY = HEIGHT / 2;
 
-stack<char> carriedPackages; // Stack untuk membawa paket
-set<string> registered_users; // save registered user
-vector<pair<int, int> > house_locations; // house locations - fixed spacing
-map<pair<int, int>, vector<pair<int, int> > > graph; // Graph structure for navigation - fixed spacing
+stack<char> carriedPackages;                       // Stack untuk menyimpan paket yang sedang dibawa
+set<string> registered_users;                      // Menyimpan daftar pengguna yang sudah terdaftar
+vector<pair<int, int> > house_locations;            // Menyimpan koordinat lokasi semua rumah
+map<pair<int, int>, vector<pair<int, int> > > graph; // Menyimpan peta jalur antar lokasi dalam bentuk graf
 map<string, int> user_scores;
 bool all_packages_delivered();
 bool is_time_up();
@@ -55,36 +55,38 @@ void show_intro();
 void ask_house_count();
 
 string current_user;
-int score = 0; // Skor
+int score = 0;      // Skor
 int move_limit = 0; // move limit courier
 int old_highscore = 0;
 int house_count = 3; // Number of houses (default 3)
-
 time_t start_time;
 int TIME_LIMIT = 45;
 
 // Helper function to check if terminal supports UTF-8
-bool check_utf8_support() {
+bool check_utf8_support()
+{
 #ifdef _WIN32
     // Check if Windows terminal supports UTF-8
     UINT originalCP = GetConsoleOutputCP();
     bool success = SetConsoleOutputCP(CP_UTF8);
-    if (success) {
+    if (success)
+    {
         SetConsoleOutputCP(originalCP);
         return true;
     }
     return false;
 #else
     // Most Unix-like systems support UTF-8
-    const char* term = getenv("TERM");
-    if (term && (string(term).find("xterm") != string::npos || 
-                string(term).find("utf") != string::npos))
+    const char *term = getenv("TERM");
+    if (term && (string(term).find("xterm") != string::npos ||
+                 string(term).find("utf") != string::npos))
         return true;
     return false;
 #endif
 }
 
-void setup_terminal() {
+void setup_terminal()
+{
 #ifdef _WIN32
     // Set UTF-8 code page
     SetConsoleOutputCP(CP_UTF8);
@@ -97,24 +99,28 @@ void setup_terminal() {
 #endif
 }
 
-void load_users() {
+void load_users()
+{
     ifstream infile("users.txt");
 
     string username;
     int highscore;
 
-    while(infile >> username >> highscore) {
+    while (infile >> username >> highscore)
+    {
         registered_users.insert(username);
         user_scores[username] = highscore;
     }
 }
 
-void save_user(const string &username, int score) {
+void save_user(const string &username, int score)
+{
     user_scores[username] = score;
 
     ofstream outfile("users.txt", ios::trunc);
-    for (const auto& pair : user_scores) {
-        outfile << pair.first << " " << pair.second << endl;
+    for (map<string, int>::const_iterator it = user_scores.begin(); it != user_scores.end(); ++it)
+    {
+        outfile << it->first << " " << it->second << endl;
     }
 }
 
@@ -132,69 +138,83 @@ void login_or_regis()
     }
 } while (!regex_match(username, username_pattern));
 
+
     current_user = username;
 
-    if(registered_users.count(username)) {
+    if (registered_users.count(username))
+    {
         old_highscore = user_scores[username];
-        cout << "\nSelamat datang kembali " << username << "! High Score kamu sebelumnya: " << user_scores[username] << " point!" << endl << endl;
-    } else {
+        cout << "\nSelamat datang kembali " << username << "! High Score kamu sebelumnya: " << user_scores[username] << " point!" << endl
+             << endl;
+    }
+    else
+    {
         cout << "\nRegistrasi baru untuk " << username << " berhasil! Selamat bermain!\n\n";
         user_scores[username] = 0;
         old_highscore = 0;
         save_user(username, 0);
     }
 
-    #ifdef _WIN32
-        system("pause");
-        cout << "\n";
-    #else
-        cout << "Tekan ENTER untuk mulai...";
-        cin.ignore();
-        cin.get();
-    #endif
+#ifdef _WIN32
+    system("pause");
+    cout << "\n";
+#else
+    cout << "Tekan ENTER untuk mulai...";
+    cin.ignore();
+    cin.get();
+#endif
 }
 
 // Build graph for map navigation
-void build_graph() {
+void build_graph()
+{
     graph.clear();
-    
+
     // Define directions: up, right, down, left
     int dx[4] = {0, 1, 0, -1};
     int dy[4] = {-1, 0, 1, 0};
-    
+
     // Check each cell and create edges to neighbors
-    for (int y = 1; y < HEIGHT - 1; y++) {
-        for (int x = 1; x < WIDTH - 1; x++) {
+    for (int y = 1; y < HEIGHT - 1; y++)
+    {
+        for (int x = 1; x < WIDTH - 1; x++)
+        {
             // Skip walls
-            if (game_map[y][x] == '#') continue;
-            
+            if (game_map[y][x] == '#')
+                continue;
+
             pair<int, int> current = make_pair(y, x);
             vector<pair<int, int> > neighbors; // Fixed spacing
-            
+
             // Check all four directions
-            for (int d = 0; d < 4; d++) {
+            for (int d = 0; d < 4; d++)
+            {
                 int ny = y + dy[d];
                 int nx = x + dx[d];
-                
+
                 // If the neighbor is valid and not a wall, add it as an edge
-                if (ny >= 1 && ny < HEIGHT - 1 && nx >= 1 && nx < WIDTH - 1 && game_map[ny][nx] != '#') {
+                if (ny >= 1 && ny < HEIGHT - 1 && nx >= 1 && nx < WIDTH - 1 && game_map[ny][nx] != '#')
+                {
                     neighbors.push_back(make_pair(ny, nx));
                 }
             }
-            
+
             // Add all neighbors to the graph
             graph[current] = neighbors;
         }
     }
 }
 
-int calculate_shortest_path(int startY, int startX, int targetY, int targetX) {
+int calculate_shortest_path(int startY, int startX, int targetY, int targetX)
+{
     queue<pair<int, int> > q; // Fixed spacing
     int dist[HEIGHT][WIDTH];
     bool visited[HEIGHT][WIDTH] = {false};
 
-    for(int i = 0; i < HEIGHT; i++) {
-        for(int j = 0; j < WIDTH; j++) {
+    for (int i = 0; i < HEIGHT; i++)
+    {
+        for (int j = 0; j < WIDTH; j++)
+        {
             dist[i][j] = -1;
         }
     }
@@ -204,23 +224,27 @@ int calculate_shortest_path(int startY, int startX, int targetY, int targetX) {
     dist[startY][startX] = 0;
     visited[startY][startX] = true;
 
-    while(!q.empty()) {
+    while (!q.empty())
+    {
         pair<int, int> current = q.front();
         int y = current.first;
         int x = current.second;
         q.pop();
 
-        if (y == targetY && x == targetX) {
+        if (y == targetY && x == targetX)
+        {
             return dist[y][x]; // shortest path found
         }
 
         // Use the graph structure for navigation
         vector<pair<int, int> > neighbors = graph[make_pair(y, x)]; // Fixed spacing
-        for (vector<pair<int, int> >::iterator it = neighbors.begin(); it != neighbors.end(); ++it) { // Fixed spacing
+        for (vector<pair<int, int> >::iterator it = neighbors.begin(); it != neighbors.end(); ++it)
+        { // Fixed spacing
             int ny = it->first;
             int nx = it->second;
-            
-            if (!visited[ny][nx]) {
+
+            if (!visited[ny][nx])
+            {
                 visited[ny][nx] = true;
                 dist[ny][nx] = dist[y][x] + 1;
                 q.push(make_pair(ny, nx));
@@ -232,53 +256,60 @@ int calculate_shortest_path(int startY, int startX, int targetY, int targetX) {
 }
 
 // Find nearest house from current position
-pair<int, int> find_nearest_house() {
+pair<int, int> find_nearest_house()
+{
     int min_dist = INT_MAX;
     pair<int, int> nearest = make_pair(-1, -1);
-    
-    for (vector<pair<int, int> >::iterator it = house_locations.begin(); it != house_locations.end(); ++it) { // Fixed spacing
-        int dist = calculate_shortest_path(courierY, courierX, it->first, it->second);
-        if (dist > 0 && dist < min_dist) {
-            min_dist = dist;
-            nearest = *it;
-        }
+
+    for (size_t i = 0; i < house_locations.size(); i++) {
+    int dist = calculate_shortest_path(courierY, courierX, 
+                                     house_locations[i].first, 
+                                     house_locations[i].second);
+    if (dist > 0 && dist < min_dist) {
+        min_dist = dist;
+        nearest = house_locations[i];
     }
-    
+}
+
     return nearest;
 }
 
-void show_animation() {
+void show_animation()
+{
     const string frames[] = {
         " \n  Horeee!!! Paket berhasil diantar!\n     \\(^_^)/ \n        |\n       / \\\n        ",
         "\n  Paket diterima dengan bahagia!\n     (^o^)/\n      \\|\n      / \\\n        ",
-        "\n  Terima kasih, kurir hebat! Cihuyyyy!!\n     (^-^)\n       |\n      / \\\n       "
-    };
+        "\n  Terima kasih, kurir hebat! Cihuyyyy!!\n     (^-^)\n       |\n      / \\\n       "};
 
-    for (int i = 0; i < 3; ++i) {
-        #ifdef _WIN32
-            system("cls");
-        #else
-            system("clear");
-        #endif
+    for (int i = 0; i < 3; ++i)
+    {
+#ifdef _WIN32
+        system("cls");
+#else
+        system("clear");
+#endif
 
         cout << frames[i] << endl;
         cout << "\nSkor: " << score << endl;
 
-        #ifdef _WIN32
-            Sleep(700);
-        #else
-            usleep(700000); // 0.7 detik per frame
-        #endif
+#ifdef _WIN32
+        Sleep(700);
+#else
+        usleep(700000); // 0.7 detik per frame
+#endif
     }
 }
 
-void add_house_at_random_location() {
+void add_house_at_random_location()
+{
     int attempts = 0;
-    while (attempts < 100) { // Limit attempts to avoid infinite loop
+    while (attempts < 100)
+    { // Limit attempts to avoid infinite loop
         int x = rand() % (WIDTH - 2) + 1;
         int y = rand() % (HEIGHT - 2) + 1;
 
-        if (game_map[y][x] == ' ' && !(x == courierX && y == courierY)) {
+        if (game_map[y][x] == ' ' && !(x == courierX && y == courierY))
+        {
             game_map[y][x] = 'H';
             house_locations.push_back(make_pair(y, x));
             break;
@@ -288,12 +319,18 @@ void add_house_at_random_location() {
 }
 
 // Fungsi untuk menghasilkan peta
-void generateMap() {
-    for (int i = 0; i < HEIGHT; i++) {
-        for (int j = 0; j < WIDTH; j++) {
-            if (i == 0 || i == HEIGHT - 1 || j == 0 || j == WIDTH - 1) {
+void generateMap()
+{
+    for (int i = 0; i < HEIGHT; i++)
+    {
+        for (int j = 0; j < WIDTH; j++)
+        {
+            if (i == 0 || i == HEIGHT - 1 || j == 0 || j == WIDTH - 1)
+            {
                 game_map[i][j] = '#'; // Tembok pinggir
-            } else {
+            }
+            else
+            {
                 game_map[i][j] = ' '; // Jalan
             }
         }
@@ -301,9 +338,10 @@ void generateMap() {
 
     // Clear house locations
     house_locations.clear();
-    
+
     // Add multiple houses at random locations
-    for (int i = 0; i < house_count; i++) {
+    for (int i = 0; i < house_count; i++)
+    {
         add_house_at_random_location();
     }
 
@@ -311,21 +349,25 @@ void generateMap() {
     int wallCount = WIDTH / 2; // Jumlah tembok acak (scaled to map size)
     int wallAdded = 0;
 
-    while (wallAdded < wallCount) {
+    while (wallAdded < wallCount)
+    {
         int x = rand() % (WIDTH - 2) + 1;
         int y = rand() % (HEIGHT - 2) + 1;
 
         // Pastikan tidak di posisi kurir atau rumah
         bool isHouse = false;
-        for (vector<pair<int, int> >::iterator it = house_locations.begin(); it != house_locations.end(); ++it) { // Fixed spacing
-            if (it->first == y && it->second == x) {
+        for (vector<pair<int, int> >::iterator it = house_locations.begin(); it != house_locations.end(); ++it)
+        { // Fixed spacing
+            if (it->first == y && it->second == x)
+            {
                 isHouse = true;
                 break;
             }
         }
 
         // Pastikan tidak di posisi kurir atau rumah
-        if (game_map[y][x] == ' ' && !(x == courierX && y == courierY) && !isHouse) {
+        if (game_map[y][x] == ' ' && !(x == courierX && y == courierY) && !isHouse)
+        {
             game_map[y][x] = '#'; // Tembok dalam map
             wallAdded++;
         }
@@ -335,34 +377,41 @@ void generateMap() {
     int paketCount = house_count + 1; // Jumlah paket (one more than houses)
     int added = 0;
 
-    while (added < paketCount) {
+    while (added < paketCount)
+    {
         int x = rand() % (WIDTH - 2) + 1;
         int y = rand() % (HEIGHT - 2) + 1;
 
         // Pastikan bukan di atas rumah, kurir, atau tembok
         bool isHouse = false;
-        for (vector<pair<int, int> >::iterator it = house_locations.begin(); it != house_locations.end(); ++it) { // Fixed spacing
-            if (it->first == y && it->second == x) {
+        for (vector<pair<int, int> >::iterator it = house_locations.begin(); it != house_locations.end(); ++it)
+        { // Fixed spacing
+            if (it->first == y && it->second == x)
+            {
                 isHouse = true;
                 break;
             }
         }
 
         // Pastikan bukan di atas rumah, kurir, atau tembok
-        if (game_map[y][x] == ' ' && !(x == courierX && y == courierY) && !isHouse) {
+        if (game_map[y][x] == ' ' && !(x == courierX && y == courierY) && !isHouse)
+        {
             game_map[y][x] = 'P';
             added++;
         }
     }
-    
+
     // Build navigation graph
     build_graph();
 }
 
 // Check if a position is a house
-bool is_house(int y, int x) {
-    for (vector<pair<int, int> >::iterator it = house_locations.begin(); it != house_locations.end(); ++it) { // Fixed spacing
-        if (it->first == y && it->second == x) {
+bool is_house(int y, int x)
+{
+    for (vector<pair<int, int> >::iterator it = house_locations.begin(); it != house_locations.end(); ++it)
+    { // Fixed spacing
+        if (it->first == y && it->second == x)
+        {
             return true;
         }
     }
@@ -370,37 +419,59 @@ bool is_house(int y, int x) {
 }
 
 // Fungsi untuk menampilkan peta dengan emoji support
-void printMap() {
-    #ifdef _WIN32
-        system("cls");
-    #else
-        system("clear"); // Menghapus layar
-    #endif
+void printMap()
+{
+#ifdef _WIN32
+    system("cls");
+#else
+    system("clear"); // Menghapus layar
+#endif
 
-    for (int i = 0; i < HEIGHT; i++) {
-        for (int j = 0; j < WIDTH; j++) {
-            if (i == courierY && j == courierX) {
-                if (use_emojis) {
+    for (int i = 0; i < HEIGHT; i++)
+    {
+        for (int j = 0; j < WIDTH; j++)
+        {
+            if (i == courierY && j == courierX)
+            {
+                if (use_emojis)
+                {
                     cout << EMOJI_COURIER;
-                } else {
+                }
+                else
+                {
                     cout << "C ";
                 }
-            } else if (is_house(i, j)) {
-                if (use_emojis) {
+            }
+            else if (is_house(i, j))
+            {
+                if (use_emojis)
+                {
                     cout << EMOJI_HOUSE;
-                } else {
+                }
+                else
+                {
                     cout << "H ";
                 }
-            } else {
-                if (use_emojis) {
-                    if (game_map[i][j] == '#') {
+            }
+            else
+            {
+                if (use_emojis)
+                {
+                    if (game_map[i][j] == '#')
+                    {
                         cout << EMOJI_WALL;
-                    } else if (game_map[i][j] == 'P') {
+                    }
+                    else if (game_map[i][j] == 'P')
+                    {
                         cout << EMOJI_PACKAGE;
-                    } else {
+                    }
+                    else
+                    {
                         cout << EMOJI_ROAD;
                     }
-                } else {
+                }
+                else
+                {
                     cout << game_map[i][j] << " ";
                 }
             }
@@ -412,70 +483,89 @@ void printMap() {
     cout << "Paket dibawa: " << carriedPackages.size() << "/3" << endl;
     cout << "Langkah tersisa: " << move_limit << endl;
     cout << EMOJI_CLOCK << " Sisa waktu: " << get_remaining_time() << " detik" << endl;
-    
+
     // Display direction to nearest house if carrying packages
-    if (!house_locations.empty() && !carriedPackages.empty()) {
+    if (!house_locations.empty() && !carriedPackages.empty())
+    {
         pair<int, int> nearest = find_nearest_house();
-        if (nearest.first != -1) {
+        if (nearest.first != -1)
+        {
             string direction = "";
-            if (nearest.first < courierY) direction += "Utara";
-            else if (nearest.first > courierY) direction += "Selatan";
-            
-            if (nearest.second < courierX) {
-                if (!direction.empty()) direction += "-";
+            if (nearest.first < courierY)
+                direction += "Utara";
+            else if (nearest.first > courierY)
+                direction += "Selatan";
+
+            if (nearest.second < courierX)
+            {
+                if (!direction.empty())
+                    direction += "-";
                 direction += "Barat";
-            } else if (nearest.second > courierX) {
-                if (!direction.empty()) direction += "-";
+            }
+            else if (nearest.second > courierX)
+            {
+                if (!direction.empty())
+                    direction += "-";
                 direction += "Timur";
             }
-            
+
             cout << "Arah ke rumah terdekat: " << direction << endl;
         }
     }
-    
+
     cout << "\nKontrol: WASD = Bergerak, Q = Keluar" << endl;
 }
 
 // Fungsi untuk kontrol arah
-void moveCourier(char direction) {
+void moveCourier(char direction)
+{
     // Hitung posisi tujuan
     int nextX = courierX;
     int nextY = courierY;
 
-    if (direction == 'w') nextY--;
-    if (direction == 's') nextY++;
-    if (direction == 'a') nextX--;
-    if (direction == 'd') nextX++;
+    if (direction == 'w')
+        nextY--;
+    if (direction == 's')
+        nextY++;
+    if (direction == 'a')
+        nextX--;
+    if (direction == 'd')
+        nextX++;
 
     // Cek apakah menabrak tembok
-    if (game_map[nextY][nextX] == '#') {
-        #ifdef _WIN32
-            system("cls");
-        #else
-            system("clear");
-        #endif
+    if (game_map[nextY][nextX] == '#')
+    {
+#ifdef _WIN32
+        system("cls");
+#else
+        system("clear");
+#endif
 
         cout << "💥 GAME OVER! Kamu menabrak tembok! 💥" << endl;
         cout << "Skor akhir: " << score << endl;
 
         cout << "High score sebelumnya: " << old_highscore << " point" << endl;
 
-        if (score > old_highscore) {
+        if (score > old_highscore)
+        {
             cout << "\n🎉 Selamat! Skor baru kamu (" << score << ") adalah rekor baru! 🎉\n";
             save_user(current_user, score);
-        } else {
+            old_highscore = score;
+        }
+        else
+        {
             cout << "\nSkor kamu belum mengalahkan rekor sebelumnya 😢\n";
             cout << "Skor tertinggi kamu tetap: " << old_highscore << " point\n";
         }
-        
-        #ifdef _WIN32
-            cout << "\n";
-            system("pause");
-        #else
-            cout << "\nTekan ENTER untuk mulai...";
-            cin.ignore();
-            cin.get();
-        #endif
+
+#ifdef _WIN32
+        cout << "\n";
+        system("pause");
+#else
+        cout << "\nTekan ENTER untuk mulai...";
+        cin.ignore();
+        cin.get();
+#endif
 
         post_game_options();
     }
@@ -486,26 +576,32 @@ void moveCourier(char direction) {
 }
 
 // Fungsi untuk mengambil paket
-void pickUpPackage() {
-    if (carriedPackages.size() < 3) {
-        if (game_map[courierY][courierX] == 'P') {
+void pickUpPackage()
+{
+    if (carriedPackages.size() < 3)
+    {
+        if (game_map[courierY][courierX] == 'P')
+        {
             carriedPackages.push('P');
             game_map[courierY][courierX] = ' '; // Hapus paket dari peta
             cout << "Paket diambil! (" << carriedPackages.size() << "/3)" << endl;
-            
-            #ifdef _WIN32
-                Sleep(500);
-            #else
-                usleep(500000); // 0.5 second feedback
-            #endif
+
+#ifdef _WIN32
+            Sleep(500);
+#else
+            usleep(500000); // 0.5 second feedback
+#endif
         }
     }
 }
 
 // Remove a house from locations
-void remove_house(int y, int x) {
-    for (vector<pair<int, int> >::iterator it = house_locations.begin(); it != house_locations.end(); ++it) { // Fixed spacing
-        if (it->first == y && it->second == x) {
+void remove_house(int y, int x)
+{
+    for (vector<pair<int, int> >::iterator it = house_locations.begin(); it != house_locations.end(); ++it)
+    { // Fixed spacing
+        if (it->first == y && it->second == x)
+        {
             house_locations.erase(it);
             break;
         }
@@ -513,39 +609,51 @@ void remove_house(int y, int x) {
 }
 
 // Fungsi untuk mengantar paket
-void deliverPackage() {
-    if (is_house(courierY, courierX) && !carriedPackages.empty()) {
+void deliverPackage()
+{
+    if (is_house(courierY, courierX) && !carriedPackages.empty())
+    {
         carriedPackages.pop();
         score += 10;
-        
+
         // Remove current house
         remove_house(courierY, courierX);
         game_map[courierY][courierX] = ' '; // Remove from map
-        
+
         show_animation();
-        
+
         // Add a new house in random location
         add_house_at_random_location();
-        
+
         // Rebuild the graph after map changes
         build_graph();
 
-        if (house_count == 1) TIME_LIMIT += 15;
-        else if (house_count == 2) TIME_LIMIT += 13;
-        else if (house_count == 3) TIME_LIMIT += 10;
-        else if (house_count == 4) TIME_LIMIT += 7;
-        else if (house_count == 5) TIME_LIMIT += 5;
+        if (house_count == 1)
+            TIME_LIMIT += 15;
+        else if (house_count == 2)
+            TIME_LIMIT += 13;
+        else if (house_count == 3)
+            TIME_LIMIT += 10;
+        else if (house_count == 4)
+            TIME_LIMIT += 7;
+        else if (house_count == 5)
+            TIME_LIMIT += 5;
 
-        if(all_packages_delivered()) {
+        if (all_packages_delivered())
+        {
             show_win_animation();
         }
     }
 }
 
-bool all_packages_delivered() {
-    for (int i = 1; i < HEIGHT - 1; ++i) {
-        for (int j = 1; j < WIDTH - 1; ++j) {
-            if (game_map[i][j] == 'P') {
+bool all_packages_delivered()
+{
+    for (int i = 1; i < HEIGHT - 1; ++i)
+    {
+        for (int j = 1; j < WIDTH - 1; ++j)
+        {
+            if (game_map[i][j] == 'P')
+            {
                 return false;
             }
         }
@@ -553,48 +661,54 @@ bool all_packages_delivered() {
     return carriedPackages.empty();
 }
 
-void show_win_animation() {
+void show_win_animation()
+{
     const string win_frame[] = {
         "\n🏆 SELAMAT! KAMU TELAH MENGANTARKAN SEMUA PAKET! 🏆\n",
-        "     \\(^_^)/     🎉🎉🎉\n",
+        "     \\(^_^)/     🎉🎉🎉\n\n",
         "   Kurir terbaik sepanjang masa!\n",
     };
 
-    #ifdef _WIN32
-        system("cls");
-    #else
-        system("clear");
-    #endif
+#ifdef _WIN32
+    system("cls");
+#else
+    system("clear");
+#endif
 
-    for (const string& line : win_frame) {
-        cout << line;
+    for (int i = 0; i < 3; ++i)
+    {
+        cout << win_frame[i];
 
-        #ifdef _WIN32
-            Sleep(700);
-        #else
-            usleep(700000); // 0.7 detik antar baris
-        #endif
+#ifdef _WIN32
+        Sleep(700);
+#else
+        usleep(700000); // 0.7 detik antar baris
+#endif
     }
 
     cout << "Skor akhir kamu: " << score << " point" << endl;
     cout << "High score sebelumnya: " << old_highscore << " point" << endl;
 
-    if (score > old_highscore) {
+    if (score > old_highscore)
+    {
         cout << "\n🎉 Selamat! Skor baru kamu (" << score << ") adalah rekor baru! 🎉\n";
         save_user(current_user, score);
-    } else {
+        old_highscore = score;
+    }
+    else
+    {
         cout << "\nSkor kamu belum mengalahkan rekor sebelumnya 😢\n";
         cout << "Skor tertinggi kamu tetap: " << old_highscore << " point\n";
     }
 
-    #ifdef _WIN32
-        cout << "\n";
-        system("pause");
-    #else
-        cout << "\nTekan ENTER untuk mulai...";
-        cin.ignore();
-        cin.get();
-    #endif
+#ifdef _WIN32
+    cout << "\n";
+    system("pause");
+#else
+    cout << "\nTekan ENTER untuk mulai...";
+    cin.ignore();
+    cin.get();
+#endif
 
     post_game_options();
 }
@@ -799,12 +913,14 @@ void ask_house_count()
     }
 }
 
-bool is_time_up() {
+bool is_time_up()
+{
     time_t now = time(NULL);
     return difftime(now, start_time) >= TIME_LIMIT;
 }
 
-int get_remaining_time() {
+int get_remaining_time()
+{
     time_t now = time(NULL);
     int remaining = TIME_LIMIT - static_cast<int>(difftime(now, start_time));
     return remaining > 0 ? remaining : 0;

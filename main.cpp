@@ -835,10 +835,15 @@ int main() {
 
     start_time = time(NULL);
 
-    while (true) {
+    while (true)
+    {
         printMap();
         char move;
+        cout << "\nMasukkan gerakan (W/A/S/D) atau Q untuk keluar: ";
         cin >> move;
+
+        // Convert to lowercase untuk konsistensi
+        move = tolower(move);
 
         if(is_time_up()) {
             cout << "\n" << EMOJI_CLOCK << "Waktu habis! Kamu gagal mengantar semua paket!" << endl;

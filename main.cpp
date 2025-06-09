@@ -43,7 +43,7 @@ int courierY = HEIGHT / 2;
 stack<char> carriedPackages;                       // Stack untuk menyimpan paket yang sedang dibawa
 set<string> registered_users;                      // Menyimpan daftar pengguna yang sudah terdaftar
 vector<pair<int, int>> house_locations;            // Menyimpan koordinat lokasi semua rumah
-map<pair<int, int>, vector<pair<int, int>>> graph; // Graph structure for navigation - fixed spacing
+map<pair<int, int>, vector<pair<int, int>>> graph; // Menyimpan peta jalur antar lokasi dalam bentuk graf
 map<string, int> user_scores;
 bool all_packages_delivered();
 bool is_time_up();
@@ -130,20 +130,14 @@ void login_or_regis()
     string username;
     regex username_pattern("^[A-Za-z0-9_]{3,}$");
 
-    while (true)
-    {
-        cout << "\nMasukkan username Anda (huruf, angka, underscore, min 3 karakter): ";
-        cin >> username;
-
-        if (regex_match(username, username_pattern))
-        {
-            break;
-        }
-        else
-        {
-            cout << "Username tidak valid. Silakan coba lagi.\n";
-        }
+   do {
+    cout << "\nMasukkan username Anda (huruf, angka, underscore, min 3 karakter): ";
+    cin >> username;
+    if (!regex_match(username, username_pattern)) {
+        cout << "Username tidak valid. Silakan coba lagi.\n";
     }
+} while (!regex_match(username, username_pattern));
+
 
     current_user = username;
 

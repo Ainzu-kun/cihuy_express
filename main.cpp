@@ -774,15 +774,10 @@ void show_leaderboard()
 
     ifstream infile("users.txt");
     string line;
-    while (getline(infile, line))
-    {
-        size_t space_pos = line.find(' ');
-        if (space_pos != string::npos)
-        {
-            string username = line.substr(0, space_pos);
-            int score = stoi(line.substr(space_pos + 1));
-            leaderboard.push_back(make_pair(username, score));
-        }
+    string username;
+    int score;
+    while (infile >> username >> score) {
+        leaderboard.push_back(make_pair(username, score));
     }
 
     // Sort from highest to lowest score using custom comparison function

@@ -785,6 +785,17 @@ void ask_house_count()
             cout << "Input tidak valid! Harap masukkan angka antara 1-5." << endl;
             continue;
         }
+
+        if (input >= 1 && input <= 5)
+        {
+            house_count = input;
+            cout << "Level " << input << " dipilih!" << endl;
+            break;
+        }
+        else
+        {
+            cout << "Level tidak tersedia! Silakan pilih level 1-5." << endl;
+        }
     }
 }
 

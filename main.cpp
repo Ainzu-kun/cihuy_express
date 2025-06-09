@@ -60,7 +60,8 @@ int move_limit = 0; // move limit courier
 int old_highscore = 0;
 int house_count = 3; // Number of houses (default 3)
 time_t start_time;
-int TIME_LIMIT = 45;
+int TIME_LIMIT = 60;
+int paketCount = 1;
 
 // Helper function to check if terminal supports UTF-8
 bool check_utf8_support() {
@@ -280,6 +281,20 @@ void add_house_at_random_location() {
         if (game_map[y][x] == ' ' && !(x == courierX && y == courierY)) {
             game_map[y][x] = 'H';
             house_locations.push_back(make_pair(y, x));
+            break;
+        }
+        attempts++;
+    }
+}
+
+void add_package() {
+    int attempts = 0;
+    while (attempts < 100) {
+        int x = rand() % (WIDTH - 2) + 1;
+        int y = rand() % (HEIGHT - 2) + 1;
+
+        if (game_map[y][x] == ' ' && !(x == courierX && y == courierY)) {
+            game_map[y][x] = 'P';
             break;
         }
         attempts++;
@@ -530,7 +545,9 @@ void remove_house(int y, int x) {
 void deliverPackage() {
     if (is_house(courierY, courierX) && !carriedPackages.empty()) {
         carriedPackages.pop();
-        score += 10;
+
+        int level_scores[] = {2, 4, 6, 8, 10};
+        score += level_scores[min(house_count - 1, 4)];
 
         // Remove current house
         remove_house(courierY, courierX);
@@ -538,26 +555,29 @@ void deliverPackage() {
 
         show_animation();
 
-        // Add a new house in random location
+        // Add a new house n package at random location
         add_house_at_random_location();
+        add_package();
 
         // Rebuild the graph after map changes
         build_graph();
 
-        if (house_count == 1)
-            TIME_LIMIT += 15;
-        else if (house_count == 2)
-            TIME_LIMIT += 13;
-        else if (house_count == 3)
-            TIME_LIMIT += 10;
-        else if (house_count == 4)
-            TIME_LIMIT += 7;
-        else if (house_count == 5)
-            TIME_LIMIT += 5;
+        TIME_LIMIT += 5;
 
-        if (all_packages_delivered()) {
-            show_win_animation();
-        }
+        // if (house_count == 1)
+        //     TIME_LIMIT += 15;
+        // else if (house_count == 2)
+        //     TIME_LIMIT += 13;
+        // else if (house_count == 3)
+        //     TIME_LIMIT += 10;
+        // else if (house_count == 4)
+        //     TIME_LIMIT += 7;
+        // else if (house_count == 5)
+        //     TIME_LIMIT += 5;
+
+        // if (all_packages_delivered()) {
+        //     show_win_animation();
+        // }
     }
 }
 
@@ -758,11 +778,11 @@ void show_intro() {
 
     cout << endl;
     cout << "Level: " << endl;
-    cout << "1. Mudah         ==>> 1 rumah, 2 paket, tambahan waktu 15 detik" << endl;
-    cout << "2. Biasa aja     ==>> 2 rumah, 3 paket, tambahan waktu 13 detik" << endl;
-    cout << "3. Sedang        ==>> 3 rumah, 4 paket, tambahan waktu 10 detik" << endl;
-    cout << "4. Lumayan Sulit ==>> 4 rumah, 5 paket, tambahan waktu 7 detik" << endl;
-    cout << "5. Sulit         ==>> 5 rumah, 6 paket, tambahan waktu 5 detik" << endl;
+    cout << "1. Mudah         ==>> 5 rumah, 6 paket, score perpaket 2 point" << endl;
+    cout << "2. Biasa aja     ==>> 4 rumah, 5 paket, score perpaket 4 point" << endl;
+    cout << "3. Sedang        ==>> 3 rumah, 4 paket, score perpaket 6 point" << endl;
+    cout << "4. Lumayan Sulit ==>> 2 rumah, 3 paket, score perpaket 8 point" << endl;
+    cout << "5. Sulit         ==>> 1 rumah, 2 paket, score perpaket 10 point" << endl;
 
     cout << endl;
     cout << "Kontrol: W (atas), A (kiri), S (bawah), D (kanan)" << endl;
@@ -783,8 +803,18 @@ void ask_house_count() {
         }
 
         if (input >= 1 && input <= 5) {
-            house_count = input;
-            cout << "Level " << input << " dipilih!" << endl;
+            if(input == 1) {
+                house_count = 5;
+            } else if(input == 2) {
+                house_count = 4;
+            } else if(input == 3) {
+                house_count = 3;
+            } else if(input == 4) {
+                house_count = 2;
+            } else if(input == 5) {
+                house_count = 1;
+            }
+            cout << "Level " << input << " dipilih!" << endl << endl;
             break;
         } else {
             cout << "Level tidak tersedia! Silakan pilih level 1-5." << endl;

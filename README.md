@@ -15,6 +15,9 @@
   <a href="https://www.contributor-covenant.org/version/2/0/code_of_conduct/">
     <img src="https://img.shields.io/badge/Code%20of%20Conduct-Contributor%20Covenant-ff69b4.svg" alt="Code of Conduct">
   </a>
+  <a href="./SECURITY.md">
+    <img src="https://img.shields.io/badge/🔒%20Security-Policy-blue?style=flat-square" alt="Security Policy">
+  </a>
 </p>
 
 ## 🛵 Cihuy Express - Delivery Game
@@ -45,6 +48,10 @@ Want to contribute? Feel free to fork this repo and create a pull request, or op
 ## 📃 License
 
 The cihuy express game is open source software licensed under the <a href="LICENSE">MIT LICENSE</a>.
+
+## 🛡️ Security
+
+For security concerns, please refer to our [SECURITY policy](SECURITY.md).
 
 ## Team
 

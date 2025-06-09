@@ -810,28 +810,30 @@ int get_remaining_time() {
     return remaining > 0 ? remaining : 0;
 }
 
-int main() {
+int main()
+{
     // Setup terminal for emojis if supported
     setup_terminal();
     use_emojis = check_utf8_support();
-    
+
     login_or_regis();
     srand(time(0));
-    
+
     show_intro();
     ask_house_count();
-    
+
     generateMap();
 
-    cout << EMOJI_CLOCK << " Waktu kamu adalah: " << TIME_LIMIT << " detik " << EMOJI_CLOCK << "\n" << endl;
-    
-    #ifdef _WIN32
-        system("pause");
-    #else
-        cout << "Tekan ENTER untuk mulai...";
-        cin.ignore();
-        cin.get();
-    #endif
+    cout << EMOJI_CLOCK << " Waktu kamu adalah: " << TIME_LIMIT << " detik " << EMOJI_CLOCK << "\n"
+         << endl;
+
+#ifdef _WIN32
+    system("pause");
+#else
+    cout << "Tekan ENTER untuk mulai...";
+    cin.ignore();
+    cin.get();
+#endif
 
     start_time = time(NULL);
 
@@ -845,69 +847,89 @@ int main() {
         // Convert to lowercase untuk konsistensi
         move = tolower(move);
 
-        if(is_time_up()) {
-            cout << "\n" << EMOJI_CLOCK << "Waktu habis! Kamu gagal mengantar semua paket!" << endl;
+        if (is_time_up())
+        {
+            cout << "\n"
+                 << EMOJI_CLOCK << "Waktu habis! Kamu gagal mengantar semua paket!" << endl;
             cout << "Skor akhir kamu: " << score << " point" << endl;
 
             cout << "High score sebelumnya: " << old_highscore << " point" << endl;
 
-            if (score > old_highscore) {
+            if (score > old_highscore)
+            {
                 cout << "\n🎉 Selamat! Skor baru kamu (" << score << ") adalah rekor baru! 🎉\n";
                 save_user(current_user, score);
-            } else {
+                old_highscore = score;
+            }
+            else
+            {
                 cout << "\nSkor kamu belum mengalahkan rekor sebelumnya 😢\n";
                 cout << "Skor tertinggi kamu tetap: " << old_highscore << " point\n";
             }
 
-            #ifdef _WIN32
-                cout << "\n";
-                system("pause");
-            #else
-                cout << "\nTekan ENTER untuk mulai...";
-                cin.ignore();
-                cin.get();
-            #endif
+#ifdef _WIN32
+            cout << "\n";
+            system("pause");
+#else
+            cout << "\nTekan ENTER untuk mulai...";
+            cin.ignore();
+            cin.get();
+#endif
 
             post_game_options();
         }
-        
-        if (move == 'q' || move == 'Q') {
+
+        if (move == 'q')
+        {
             cout << "Game berakhir! Skor akhir: " << score << " point" << endl;
 
             cout << "High score sebelumnya: " << old_highscore << " point" << endl;
 
-            if (score > old_highscore) {
+            if (score > old_highscore)
+            {
                 cout << "\n🎉 Selamat! Skor baru kamu (" << score << ") adalah rekor baru! 🎉\n";
                 save_user(current_user, score);
-            } else {
+                old_highscore = score;
+            }
+            else
+            {
                 cout << "\nSkor kamu belum mengalahkan rekor sebelumnya 😢\n";
                 cout << "Skor tertinggi kamu tetap: " << old_highscore << " point\n";
             }
 
-            #ifdef _WIN32
-                cout << "\n";
-                system("pause");
-            #else
-                cout << "\nTekan ENTER untuk mulai...";
-                cin.ignore();
-                cin.get();
-            #endif
+#ifdef _WIN32
+            cout << "\n";
+            system("pause");
+#else
+            cout << "\nTekan ENTER untuk mulai...";
+            cin.ignore();
+            cin.get();
+#endif
 
             post_game_options();
         }
-        
-        if (move == 'w' || move == 'a' || move == 's' || move == 'd') {
+
+        if (move == 'w' || move == 'a' || move == 's' || move == 'd')
+        {
             moveCourier(move); // Menggerakkan kurir
-            pickUpPackage(); // Ambil paket jika ada
-            deliverPackage(); // Antar paket jika sudah sampai tujuan
+            pickUpPackage();   // Ambil paket jika ada
+            deliverPackage();  // Antar paket jika sudah sampai tujuan
+        }
+        else
+        {
+            cout << "Input tidak valid! Gunakan W/A/S/D untuk bergerak atau Q untuk keluar." << endl;
+#ifdef _WIN32
+            Sleep(1500);
+#else
+            usleep(1500000);
+#endif
+            continue; // Kembali ke awal loop tanpa sleep di akhir
         }
 
-        #ifdef _WIN32
-            Sleep(200);
-        #else
-            usleep(200000); // Kecepatan game (200ms)
-        #endif
+#ifdef _WIN32
+        Sleep(200);
+#else
+        usleep(200000); // Kecepatan game (200ms)
+#endif
     }
-
-    return 0;
 }

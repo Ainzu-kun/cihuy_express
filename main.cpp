@@ -261,15 +261,15 @@ pair<int, int> find_nearest_house()
     int min_dist = INT_MAX;
     pair<int, int> nearest = make_pair(-1, -1);
 
-    for (vector<pair<int, int>>::iterator it = house_locations.begin(); it != house_locations.end(); ++it)
-    { // Fixed spacing
-        int dist = calculate_shortest_path(courierY, courierX, it->first, it->second);
-        if (dist > 0 && dist < min_dist)
-        {
-            min_dist = dist;
-            nearest = *it;
-        }
+    for (size_t i = 0; i < house_locations.size(); i++) {
+    int dist = calculate_shortest_path(courierY, courierX, 
+                                     house_locations[i].first, 
+                                     house_locations[i].second);
+    if (dist > 0 && dist < min_dist) {
+        min_dist = dist;
+        nearest = house_locations[i];
     }
+}
 
     return nearest;
 }

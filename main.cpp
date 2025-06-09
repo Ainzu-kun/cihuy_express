@@ -86,8 +86,7 @@ bool check_utf8_support()
 #endif
 }
 
-void setup_terminal()
-{
+void setup_terminal() {
 #ifdef _WIN32
     // Set UTF-8 code page
     SetConsoleOutputCP(CP_UTF8);
@@ -99,6 +98,7 @@ void setup_terminal()
     SetConsoleMode(hOut, dwMode);
 #endif
 }
+
 
 void load_users()
 {

@@ -25,24 +25,24 @@ const int WIDTH = 30;
 const int HEIGHT = 15;
 char game_map[HEIGHT][WIDTH];
 
-// Emoji characters
-const string EMOJI_COURIER = "🛵"; // Motorcycle
-const string EMOJI_PACKAGE = "📦"; // Package
-const string EMOJI_HOUSE = "🏠";   // House
-const string EMOJI_WALL = "🧱";    // Wall/brick
-const string EMOJI_CLOCK = "⏰";   // Clock
-const string EMOJI_ROAD = "  ";    // Empty road (double space for alignment)
+// Emoji
+const string EMOJI_COURIER = "🛵"; // Motor
+const string EMOJI_PACKAGE = "📦"; // Paket
+const string EMOJI_HOUSE = "🏠";   // Rumah
+const string EMOJI_WALL = "🧱";    // Tembok
+const string EMOJI_CLOCK = "⏰";   // Jam
+const string EMOJI_ROAD = "  ";    // Jalan
 
-// Flag to determine if emojis can be used
+// Penanda emoji dgunakan
 bool use_emojis = false;
 
 // Posisi awal kurir
 int courierX = WIDTH / 2;
 int courierY = HEIGHT / 2;
 
-stack<char> carriedPackages;                       // Stack untuk membawa paket
-set<string> registered_users;                      // save registered user
-vector<pair<int, int>> house_locations;            // house locations - fixed spacing
+stack<char> carriedPackages;                       // Stack untuk menyimpan paket yang sedang dibawa
+set<string> registered_users;                      // Menyimpan daftar pengguna yang sudah terdaftar
+vector<pair<int, int>> house_locations;            // Menyimpan koordinat lokasi semua rumah
 map<pair<int, int>, vector<pair<int, int>>> graph; // Graph structure for navigation - fixed spacing
 map<string, int> user_scores;
 bool all_packages_delivered();
@@ -59,7 +59,6 @@ int score = 0;      // Skor
 int move_limit = 0; // move limit courier
 int old_highscore = 0;
 int house_count = 3; // Number of houses (default 3)
-
 time_t start_time;
 int TIME_LIMIT = 45;
 

@@ -42,8 +42,8 @@ int courierY = HEIGHT / 2;
 
 stack<char> carriedPackages;                       // Stack untuk menyimpan paket yang sedang dibawa
 set<string> registered_users;                      // Menyimpan daftar pengguna yang sudah terdaftar
-vector<pair<int, int>> house_locations;            // Menyimpan koordinat lokasi semua rumah
-map<pair<int, int>, vector<pair<int, int>>> graph; // Menyimpan peta jalur antar lokasi dalam bentuk graf
+vector<pair<int, int> > house_locations;            // Menyimpan koordinat lokasi semua rumah
+map<pair<int, int>, vector<pair<int, int> > > graph; // Menyimpan peta jalur antar lokasi dalam bentuk graf
 map<string, int> user_scores;
 bool all_packages_delivered();
 bool is_time_up();
@@ -184,7 +184,7 @@ void build_graph()
                 continue;
 
             pair<int, int> current = make_pair(y, x);
-            vector<pair<int, int>> neighbors; // Fixed spacing
+            vector<pair<int, int> > neighbors; // Fixed spacing
 
             // Check all four directions
             for (int d = 0; d < 4; d++)
@@ -207,7 +207,7 @@ void build_graph()
 
 int calculate_shortest_path(int startY, int startX, int targetY, int targetX)
 {
-    queue<pair<int, int>> q; // Fixed spacing
+    queue<pair<int, int> > q; // Fixed spacing
     int dist[HEIGHT][WIDTH];
     bool visited[HEIGHT][WIDTH] = {false};
 
@@ -237,8 +237,8 @@ int calculate_shortest_path(int startY, int startX, int targetY, int targetX)
         }
 
         // Use the graph structure for navigation
-        vector<pair<int, int>> neighbors = graph[make_pair(y, x)]; // Fixed spacing
-        for (vector<pair<int, int>>::iterator it = neighbors.begin(); it != neighbors.end(); ++it)
+        vector<pair<int, int> > neighbors = graph[make_pair(y, x)]; // Fixed spacing
+        for (vector<pair<int, int> >::iterator it = neighbors.begin(); it != neighbors.end(); ++it)
         { // Fixed spacing
             int ny = it->first;
             int nx = it->second;
@@ -261,12 +261,13 @@ pair<int, int> find_nearest_house()
     int min_dist = INT_MAX;
     pair<int, int> nearest = make_pair(-1, -1);
 
-    for (vector<pair<int, int>>::iterator it = house_locations.begin(); 
-     it != house_locations.end(); ++it) {
-    int dist = calculate_shortest_path(courierY, courierX, it->first, it->second);
+    for (size_t i = 0; i < house_locations.size(); i++) {
+    int dist = calculate_shortest_path(courierY, courierX, 
+                                     house_locations[i].first, 
+                                     house_locations[i].second);
     if (dist > 0 && dist < min_dist) {
         min_dist = dist;
-        nearest = *it;
+        nearest = house_locations[i];
     }
 }
 
@@ -355,7 +356,7 @@ void generateMap()
 
         // Pastikan tidak di posisi kurir atau rumah
         bool isHouse = false;
-        for (vector<pair<int, int>>::iterator it = house_locations.begin(); it != house_locations.end(); ++it)
+        for (vector<pair<int, int> >::iterator it = house_locations.begin(); it != house_locations.end(); ++it)
         { // Fixed spacing
             if (it->first == y && it->second == x)
             {
@@ -383,7 +384,7 @@ void generateMap()
 
         // Pastikan bukan di atas rumah, kurir, atau tembok
         bool isHouse = false;
-        for (vector<pair<int, int>>::iterator it = house_locations.begin(); it != house_locations.end(); ++it)
+        for (vector<pair<int, int> >::iterator it = house_locations.begin(); it != house_locations.end(); ++it)
         { // Fixed spacing
             if (it->first == y && it->second == x)
             {
@@ -407,7 +408,7 @@ void generateMap()
 // Check if a position is a house
 bool is_house(int y, int x)
 {
-    for (vector<pair<int, int>>::iterator it = house_locations.begin(); it != house_locations.end(); ++it)
+    for (vector<pair<int, int> >::iterator it = house_locations.begin(); it != house_locations.end(); ++it)
     { // Fixed spacing
         if (it->first == y && it->second == x)
         {
@@ -597,7 +598,7 @@ void pickUpPackage()
 // Remove a house from locations
 void remove_house(int y, int x)
 {
-    for (vector<pair<int, int>>::iterator it = house_locations.begin(); it != house_locations.end(); ++it)
+    for (vector<pair<int, int> >::iterator it = house_locations.begin(); it != house_locations.end(); ++it)
     { // Fixed spacing
         if (it->first == y && it->second == x)
         {
@@ -769,7 +770,7 @@ void post_game_options()
 
 void show_leaderboard()
 {
-    vector<pair<string, int>> leaderboard;
+    vector<pair<string, int> > leaderboard;
 
     ifstream infile("users.txt");
     string line;

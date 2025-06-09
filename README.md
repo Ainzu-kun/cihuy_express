@@ -47,7 +47,7 @@ The cihuy express game is open source software licensed under the <a href="LICEN
 The Cihuy Express development team consists of 6 people:
 
 - Marwa Aulia Lukman
-- Muhammad Ikshan Suherman
+- Muhamad Ikshan Suherman
 - Muhammad Zaidan Rahman
 - Rafi Islami Pasha Dini Hari Putra
 - Vina Nur Nisa

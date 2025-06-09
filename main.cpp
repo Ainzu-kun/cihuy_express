@@ -60,7 +60,7 @@ int move_limit = 0; // move limit courier
 int old_highscore = 0;
 int house_count = 3; // Number of houses (default 3)
 time_t start_time;
-int TIME_LIMIT = 45;
+int TIME_LIMIT = 60;
 
 // Helper function to check if terminal supports UTF-8
 bool check_utf8_support() {

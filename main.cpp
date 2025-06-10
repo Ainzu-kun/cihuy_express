@@ -541,7 +541,7 @@ void deliverPackage() {
     if (is_house(courierY, courierX) && !carriedPackages.empty()) {
         carriedPackages.pop();
 
-        int level_scores[] = {2, 4, 6, 8, 10};
+        int level_scores[] = {10, 8, 6, 4, 2};
         score += level_scores[min(house_count - 1, 4)];
 
         // remove current house

@@ -122,10 +122,19 @@ void login_or_regis() {
     regex username_pattern("^[A-Za-z0-9_]{3,}$");
 
     do {
-        cout << "\nMasukkan username Anda (huruf, angka, underscore, min 3 karakter): "; cin >> username;
+        cout << "\nMasukkan username Anda (huruf, angka, underscore, min 3 karakter): "; getline(cin, username);
 
-        if (!regex_match(username, username_pattern)) {
-            cout << "Username tidak valid. Silakan coba lagi.\n";
+        // trim spaces from username
+        username.erase(0, username.find_first_not_of(" \t\n\r\f\v"));
+        username.erase(username.find_last_not_of(" \t\n\r\f\v") + 1);
+
+        if(username.empty()) {
+            cout << "\nUsername tidak boleh kosong. Silakan coba lagi!\n";
+        } else if(username == "q" || username == "Q") {
+            cout << "\n 👋 Terima kasih telah bermain " << current_user << "! Sampai jumpa lagi! 👋\n\n";
+            exit(0);
+        } else if (!regex_match(username, username_pattern)) {
+            cout << "\nUsername tidak valid. Silakan coba lagi.\n";
         }
     } while (!regex_match(username, username_pattern));
 
@@ -771,31 +780,32 @@ void show_intro() {
 }
 
 void ask_house_count() {
-    int input;
+    string input;
     while (true) {
-        cout << "Pilih level berapa yang ingin kamu tantang? (1-5): "; cin >> input;
+        cout << "Pilih level berapa yang ingin kamu tantang (q untuk quit)? (1-5): "; getline(cin, input);
 
-        if (cin.fail()) {
-            cin.clear(); // clear error flag
-            cin.ignore(10000, '\n'); // ignore invalid characters
-            cout << "Input tidak valid! Harap masukkan angka antara 1-5." << endl;
-            continue;
-        }
+        // trim spaces from username
+        input.erase(0, input.find_first_not_of(" \t\n\r\f\v"));
+        input.erase(input.find_last_not_of(" \t\n\r\f\v") + 1);
 
-        if (input >= 1 && input <= 5) {
-            if(input == 1) {
-                house_count = 5;
-            } else if(input == 2) {
-                house_count = 4;
-            } else if(input == 3) {
-                house_count = 3;
-            } else if(input == 4) {
-                house_count = 2;
-            } else if(input == 5) {
-                house_count = 1;
-            }
-            cout << "Level " << input << " dipilih!" << endl << endl;
+        if(input == "1") {
+            house_count = 5;
             break;
+        } else if(input == "2") {
+            house_count = 4;
+            break;
+        } else if(input == "3") {
+            house_count = 3;
+            break;
+        } else if(input == "4") {
+            house_count = 2;
+            break;
+        } else if(input == "5") {
+            house_count = 1;
+            break;
+        } else if(input == "q" || input == "Q") {
+            cout << "\n 👋 Terima kasih telah bermain " << current_user << "! Sampai jumpa lagi! 👋\n\n";
+            exit(0);
         } else {
             cout << "Level tidak tersedia! Silakan pilih level 1-5." << endl;
         }
@@ -840,11 +850,15 @@ int main() {
 
     while (true) {
         printMap();
-        char move;
-        cout << "\nMasukkan gerakan (W/A/S/D) atau Q untuk keluar: "; cin >> move;
+        string input;
+        cout << "\nMasukkan gerakan (W/A/S/D) atau Q untuk keluar: "; getline(cin, input);
+
+        if (input.empty()) {
+            cout << "❌ Input tidak boleh kosong. Silakan masukkan arah (W, A, S, D):\n"; getline(cin, input);
+        }
 
         // convert to lowercase untuk konsistensi
-        move = tolower(move);
+        char move = tolower(input[0]);
 
         if (is_time_up()) {
             cout << "\n" << EMOJI_CLOCK << "Waktu habis! Kamu gagal mengantar semua paket!" << endl;
@@ -907,9 +921,9 @@ int main() {
             cout << "Input tidak valid! Gunakan W/A/S/D untuk bergerak atau Q untuk keluar." << endl;
 
             #ifdef _WIN32
-                Sleep(1500);
+                Sleep(700);
             #else
-                usleep(1500000);
+                usleep(7000000);
             #endif
 
             continue; // return to the beginning of the loop without sleep at the end

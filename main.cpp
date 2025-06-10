@@ -699,13 +699,13 @@ void show_leaderboard() {
     }
 
     cout << "\n=============== 📊 LEADERBOARD 📊 ===============\n";
-    cout << "  Peringkat     | Nama              | Skor\n";
+    cout << "  Peringkat       | Nama              | Skor\n";
     cout << "-------------------------------------------------\n";
 
     int rank = 1;
     for (size_t i = 0; i < leaderboard.size() && rank <= 10; ++i) {
-        cout << "     " << rank << "     | " << setw(12) << left << leaderboard[i].first
-             << " | " << leaderboard[i].second << " point" << endl;
+        cout << "          " << rank << "       | " << setw(12) << left << leaderboard[i].first
+             << "      | " << leaderboard[i].second << " point" << endl;
         rank++;
     }
 

@@ -42,7 +42,7 @@ g++ main.cpp -o main
 
 ## 🤝 Contribution
 
-This project adopts the Cihuy Express <a href="CODE_OF_CONDACT.md">Code of Condact</a>.
+This project adopts the Cihuy Express <a href="CODE_OF_CONDUCT.md">Code of Conduct</a>.
 Want to contribute? Feel free to fork this repo and create a pull request, or open an issue if you find a bug or new idea.
 
 ## 📃 License

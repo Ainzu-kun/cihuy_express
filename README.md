@@ -40,7 +40,7 @@ g++ main.cpp -o main
 ./main
 ```
 
-## 🤝 Contributing
+## 🤝 Contribution
 
 This project adopts the Cihuy Express <a href="CODE_OF_CONDACT.md">Code of Condact</a>.
 Want to contribute? Feel free to fork this repo and create a pull request, or open an issue if you find a bug or new idea.
@@ -53,7 +53,7 @@ The cihuy express game is open source software licensed under the <a href="LICEN
 
 For security concerns, please refer to our [SECURITY policy](SECURITY.md).
 
-## Team
+## Our Team
 
 The Cihuy Express development team consists of 6 people:
 

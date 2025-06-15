@@ -60,6 +60,7 @@ int house_count = 3; // number of houses (default 3)
 time_t start_time;
 int TIME_LIMIT = 60;
 int paketCount = 1;
+int deliveredPackages = 0; // jumlah paket yang berhasil diantar
 int nyawa = 3; // jumlah nyawa awal
 
 // helper function to check if terminal supports UTF-8
@@ -433,6 +434,7 @@ void printMap() {
 
     cout << "\nSkor: " << score << endl;
     cout << "Paket dibawa: " << carriedPackages.size() << "/3" << endl;
+    cout << "Paket berhasil diantar: " << deliveredPackages << endl;
     cout << EMOJI_CLOCK << " Sisa waktu: " << get_remaining_time() << " detik" << endl;
     cout << "❤️  Nyawa: " << nyawa << endl;  // Baris baru untuk menampilkan nyawa
 
@@ -491,7 +493,7 @@ void moveCourier(char direction) {
         #else
             system("clear");
         #endif
-
+      
         if (nyawa > 0) {
             cout << "💥 Kamu menabrak tembok! Nyawa tersisa: " << nyawa << " 💥" << endl;
             
@@ -501,13 +503,10 @@ void moveCourier(char direction) {
                 usleep(2000000);
             #endif
             return; // kembalikan tanpa mengakhiri game
-        }
-        else {
+        } else {
             cout << "💥 GAME OVER! Kamu kehabisan nyawa! 💥" << endl;
             cout << "Skor akhir: " << score << endl;
-
-            cout << "High score sebelumnya: " << old_highscore << " point" << endl;
-
+          
             if (score > old_highscore) {
                 cout << "\n🎉 Selamat! Skor baru kamu (" << score << ") adalah rekor baru! 🎉\n";
                 save_user(current_user, score);
@@ -516,6 +515,7 @@ void moveCourier(char direction) {
                 cout << "\nSkor kamu belum mengalahkan rekor sebelumnya 😢\n";
                 cout << "Skor tertinggi kamu tetap: " << old_highscore << " point\n";
             }
+        }
 
             #ifdef _WIN32
                 cout << "\n";
@@ -565,6 +565,8 @@ void remove_house(int y, int x) {
 void deliverPackage() {
     if (is_house(courierY, courierX) && !carriedPackages.empty()) {
         carriedPackages.pop();
+
+        deliveredPackages++; // Tambah jumlah paket yang berhasil diantar
 
         int level_scores[] = {10, 8, 6, 4, 2};
         score += level_scores[min(house_count - 1, 4)];
@@ -677,6 +679,7 @@ void post_game_options() {
             nyawa = 3;
             carriedPackages = stack<char>();
             TIME_LIMIT = 45;
+            deliveredPackages = 0; // Reset jumlah paket yang berhasil diantar
 
             courierX = WIDTH / 2;
             courierY = HEIGHT / 2;
@@ -706,6 +709,7 @@ void post_game_options() {
         }
     }
 }
+
 
 void show_leaderboard() {
     vector<pair<string, int> > leaderboard;
@@ -894,8 +898,8 @@ int main() {
 
         if (is_time_up()) {
             cout << "\n" << EMOJI_CLOCK << "Waktu habis! Kamu gagal mengantar semua paket!" << endl;
+            cout << "Paket berhasil diantar: " << deliveredPackages << endl;
             cout << "Skor akhir kamu: " << score << " point" << endl;
-
             cout << "High score sebelumnya: " << old_highscore << " point" << endl;
 
             if (score > old_highscore) {
